@@ -33,9 +33,60 @@ const findUser = async (email) => {
     }
 }
 
+const updateUserPhoto = async (userId, filePath) => {
+    try {
+        const result = await db.query('UPDATE users SET foto = ($1) WHERE id = $2', [filePath, userId]);
+        return result;
+    } catch (error) {
+        console.error('Error updating user photo:', error);
+        throw error;
+    }
+}
+
+const getUserPhotoPath = async (userId) => {
+    try {
+        const result = await db.query('SELECT foto FROM users WHERE id = $1', [userId]);
+        if (result.rows.length > 0) {
+            return result.rows[0].foto;
+        } else {
+            return null; // Atau throw new Error('User photo not found');
+        }
+    } catch (error) {
+        console.error('Error getting user photo:', error);
+        throw error;
+    }
+}
+
+const updateUserIjazah = async (userId, filePath) => {
+    try {
+        const result = await db.query('UPDATE users SET ijazah = ($1) WHERE id = $2', [filePath, userId]);
+        return result;
+    } catch (error) {
+        console.error('Error updating user ijazah:', error);
+        throw error;
+    }
+}
+
+const getUserIjazahPath = async (userId) => {
+    try {
+        const result = await db.query('SELECT ijazah FROM users WHERE id = $1', [userId]);
+        if (result.rows.length > 0) {
+            return result.rows[0].ijazah;
+        } else {
+            return null; // Atau throw new Error('User photo not found');
+        }
+    } catch (error) {
+        console.error('Error getting user ijazah:', error);
+        throw error;
+    }
+}
 
 module.exports = { 
     getUsers,
     createUser,
-    findUser
+    findUser,
+    updateUserPhoto,
+    getUserPhotoPath,
+    updateUserIjazah,
+    getUserIjazahPath
  }
