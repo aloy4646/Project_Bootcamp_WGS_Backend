@@ -5,7 +5,7 @@ const users_controller = require('../controller/users_controller')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const mime = require('mime-types');
+const mime = require('mime-types')
 
 // Fungsi untuk membuat konfigurasi penyimpanan dan middleware upload multer
 function createUploadConfig(destinationFolder, allowedExtensions) {
@@ -39,14 +39,14 @@ function createUploadConfig(destinationFolder, allowedExtensions) {
 }
 
 // Konfigurasi upload untuk gambar
-const imageUploads = createUploadConfig('../imageUploads', [
+const imageUploads = createUploadConfig('../public/imageUploads', [
     '.png',
     '.jpg',
     '.jpeg',
 ])
 
 // Konfigurasi upload untuk PDF
-const pdfUploads = createUploadConfig('../pdfUploads', ['.pdf'])
+const pdfUploads = createUploadConfig('../public/pdfUploads', ['.pdf'])
 
 router.post('/', async (req, res) => {
     try {
@@ -119,15 +119,25 @@ router.post('/login', async (req, res) => {
 
 router.put('/photo/:id', imageUploads.single('image'), async (req, res) => {
     try {
-        const userId = req.params.id;
-        const filePath = req.file.path;
+        const userId = req.params.id
+        const message = req.body.message
+        const filePath = req.file.path
 
-        console.log({reqfile: req.file});
-
-        await users_controller.updateUserPhoto(userId, filePath);
+        await users_controller.updateUserPhoto(userId, filePath, message)
 
         res.json({ status: 'image received' })
     } catch (error) {
+        const filePath = req.file.path
+
+        // Hapus file jika ada kesalahan
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error('Gagal menghapus file:', err)
+                return
+            }
+            console.log('File berhasil dihapus:', filePath)
+        })
+        
         res.status(500)
         res.json({
             status: 500,
@@ -139,28 +149,26 @@ router.put('/photo/:id', imageUploads.single('image'), async (req, res) => {
 
 router.get('/photo/:id', async (req, res) => {
     try {
-        const userId = req.params.id;
-        const filePath = await users_controller.getUserPhotoPath(userId);
+        const userId = req.params.id
+        const filePath = await users_controller.getUserPhotoPath(userId)
 
-        const file = fs.readFileSync(filePath);
-        console.log("masuk sini");
+        const file = fs.readFileSync(filePath)
 
         // Encode file menjadi base64
-        const fileBase64 = file.toString('base64');
-        console.log("masuk sini 2");
+        const fileBase64 = file.toString('base64')
 
         // Tentukan tipe konten sebagai image/jpeg atau image/png, tergantung pada jenis file
-        const contentType = mime.lookup(filePath);
+        const contentType = mime.lookup(filePath)
         if (!contentType) {
-            throw new Error('Unknown file type');
+            throw new Error('Unknown file type')
         }
 
         // Kirim file sebagai respons JSON
         res.status(200).json({
-            status:200,
+            status: 200,
             file: fileBase64,
-            contentType: contentType
-        });
+            contentType: contentType,
+        })
     } catch (error) {
         res.status(500)
         res.json({
@@ -171,17 +179,27 @@ router.get('/photo/:id', async (req, res) => {
     }
 })
 
-
 router.put('/ijazah/:id', pdfUploads.single('ijazah'), async (req, res) => {
     try {
+        const userId = req.params.id
+        const message = req.body.message
+        const filePath = req.file.path
 
-        const userId = req.params.id;
-        const filePath = req.file.path;
-
-        await users_controller.updateUserIjazah(userId, filePath);
+        await users_controller.updateUserIjazah(userId, filePath, message)
 
         res.json({ status: 'ijazah received' })
     } catch (error) {
+        const filePath = req.file.path
+
+        // Hapus file jika ada kesalahan
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error('Gagal menghapus file:', err)
+                return
+            }
+            console.log('File berhasil dihapus:', filePath)
+        })
+
         res.status(500)
         res.json({
             status: 500,
@@ -193,26 +211,26 @@ router.put('/ijazah/:id', pdfUploads.single('ijazah'), async (req, res) => {
 
 router.get('/ijazah/:id', async (req, res) => {
     try {
-        const userId = req.params.id;
-        const filePath = await users_controller.getUserIjazahPath(userId);
+        const userId = req.params.id
+        const filePath = await users_controller.getUserIjazahPath(userId)
 
-        const file = fs.readFileSync(filePath);
+        const file = fs.readFileSync(filePath)
 
         // Encode file menjadi base64
-        const fileBase64 = file.toString('base64');
+        const fileBase64 = file.toString('base64')
 
         // Tentukan tipe konten sebagai pdf, tergantung pada jenis file
-        const contentType = mime.lookup(filePath);
+        const contentType = mime.lookup(filePath)
         if (!contentType) {
-            throw new Error('Unknown file type');
+            throw new Error('Unknown file type')
         }
 
         // Kirim file sebagai respons JSON
         res.status(200).json({
-            status:200,
+            status: 200,
             file: fileBase64,
-            contentType: contentType
-        });
+            contentType: contentType,
+        })
     } catch (error) {
         res.status(500)
         res.json({
@@ -222,6 +240,5 @@ router.get('/ijazah/:id', async (req, res) => {
         })
     }
 })
-
 
 module.exports = router

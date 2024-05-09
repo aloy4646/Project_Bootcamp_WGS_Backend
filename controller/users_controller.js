@@ -12,7 +12,7 @@ const getUsers = async () => {
 
 const createUser = async (newUser) => {
     try {
-        const result = await db.query('INSERT INTO users (email, password) VALUES ($1, $2)', [newUser.email, newUser.password])
+        const result = await db.query('INSERT INTO users (email, password, createdAt) VALUES ($1, $2, $3)', [newUser.email, newUser.password, new Date()])
         return result
     } catch (error) {
         console.error('Error menambahkan user:', error)
@@ -33,9 +33,16 @@ const findUser = async (email) => {
     }
 }
 
-const updateUserPhoto = async (userId, filePath) => {
+const updateUserPhoto = async (userId, filePath, message) => {
     try {
-        const result = await db.query('UPDATE users SET foto = ($1) WHERE id = $2', [filePath, userId]);
+        var result = await db.query('UPDATE users SET foto = ($1), updatedat = NOW() WHERE id = $2', [filePath, userId]);
+        
+        if(result){
+            const newHistory = { "message": message, "acceptBy": "Admin1" };
+            const newHistoryJSON = JSON.stringify(newHistory);
+            result = addHistory(userId, newHistoryJSON)
+        }
+
         return result;
     } catch (error) {
         console.error('Error updating user photo:', error);
@@ -57,9 +64,16 @@ const getUserPhotoPath = async (userId) => {
     }
 }
 
-const updateUserIjazah = async (userId, filePath) => {
+const updateUserIjazah = async (userId, filePath, message) => {
     try {
-        const result = await db.query('UPDATE users SET ijazah = ($1) WHERE id = $2', [filePath, userId]);
+        var result = await db.query('UPDATE users SET ijazah = ($1), updatedat = NOW() WHERE id = $2', [filePath, userId]);
+        
+        if (result) {
+            const newHistory = { "message": message, "acceptBy": "Admin1" };
+            const newHistoryJSON = JSON.stringify(newHistory);
+            result = addHistory(userId, newHistoryJSON)
+        }
+
         return result;
     } catch (error) {
         console.error('Error updating user ijazah:', error);
@@ -79,6 +93,17 @@ const getUserIjazahPath = async (userId) => {
         console.error('Error getting user ijazah:', error);
         throw error;
     }
+}
+
+const addHistory = async (userId, newHistoryJSON) => {
+    try {
+        const result = await db.query('INSERT INTO history ("idUser", history) VALUES ($1, $2)', [userId, newHistoryJSON])
+        return result;
+    } catch (error) {
+        console.error('Error add history:', error);
+        throw error;
+    }
+
 }
 
 module.exports = { 
