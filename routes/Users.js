@@ -2,60 +2,21 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
 const users_controller = require('../controller/users_controller')
-const multer = require('multer')
-const path = require('path')
 const fs = require('fs')
 const mime = require('mime-types')
-
-// Fungsi untuk membuat konfigurasi penyimpanan dan middleware upload multer
-function createUploadConfig(destinationFolder, allowedExtensions) {
-    const storage = multer.diskStorage({
-        destination: function (req, file, callback) {
-            const uploadPath = path.join(__dirname, destinationFolder)
-            callback(null, uploadPath)
-        },
-        filename: function (req, file, callback) {
-            callback(null, Date.now() + '-' + file.originalname)
-        },
-    })
-
-    const upload = multer({
-        storage: storage,
-        fileFilter: function (req, file, callback) {
-            const fileExt = path.extname(file.originalname).toLowerCase()
-            if (allowedExtensions.includes(fileExt)) {
-                return callback(null, true)
-            } else {
-                return callback(
-                    new Error(
-                        `Only ${allowedExtensions.join(', ')} files are allowed`
-                    )
-                )
-            }
-        },
-    })
-
-    return upload
-}
-
-// Konfigurasi upload untuk gambar
-const imageUploads = createUploadConfig('../public/imageUploads', [
-    '.png',
-    '.jpg',
-    '.jpeg',
-])
-
-// Konfigurasi upload untuk PDF
-const pdfUploads = createUploadConfig('../public/pdfUploads', ['.pdf'])
+const {imageUploads, pdfUploads} = require('../storage/storage') 
+const { generateRandomString } = require('../password_generator/generator')
 
 router.post('/', async (req, res) => {
     try {
-        const { email, password } = req.body
+        const {email, idAdmin} = req.body
+
+        const password = generateRandomString(6, 10)
 
         bcrypt.hash(password, 10).then(async (hash) => {
-            await users_controller.createUser({ email, password: hash })
+            await users_controller.createUser({ email, password: hash }, idAdmin)
 
-            res.json({ status: 200, message: 'registration success' })
+            res.json({ status: 200, message: 'registration success', data:{email:email, password:password} })
         })
     } catch (error) {
         res.status(500)
@@ -120,10 +81,10 @@ router.post('/login', async (req, res) => {
 router.put('/photo/:id', imageUploads.single('image'), async (req, res) => {
     try {
         const userId = req.params.id
-        const message = req.body.message
+        const {message, idAdmin} = req.body
         const filePath = req.file.path
 
-        await users_controller.updateUserPhoto(userId, filePath, message)
+        await users_controller.updateUserPhoto(userId, idAdmin, filePath, message)
 
         res.json({ status: 'image received' })
     } catch (error) {
@@ -182,10 +143,10 @@ router.get('/photo/:id', async (req, res) => {
 router.put('/ijazah/:id', pdfUploads.single('ijazah'), async (req, res) => {
     try {
         const userId = req.params.id
-        const message = req.body.message
+        const {message, idAdmin} = req.body
         const filePath = req.file.path
 
-        await users_controller.updateUserIjazah(userId, filePath, message)
+        await users_controller.updateUserIjazah(userId, idAdmin, filePath, message)
 
         res.json({ status: 'ijazah received' })
     } catch (error) {
@@ -230,6 +191,26 @@ router.get('/ijazah/:id', async (req, res) => {
             status: 200,
             file: fileBase64,
             contentType: contentType,
+        })
+    } catch (error) {
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
+router.get('/logs/:id', async (req, res) => {
+    try {
+        const userId = req.params.id
+        const logs = await users_controller.getUserLogs(userId)
+
+        // Kirim file sebagai respons JSON
+        res.status(200).json({
+            status: 200,
+            data: logs
         })
     } catch (error) {
         res.status(500)
