@@ -1,6 +1,6 @@
 
 const generateRandomString = (minLength, maxLength) => {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}|[]\\;\':"<>?,./';
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!()-.?[]_`~;:@#$%^&*+=';
     const length = Math.floor(Math.random() * (maxLength - minLength + 1)) + minLength;
     let randomString = '';
     

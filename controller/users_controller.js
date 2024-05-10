@@ -12,10 +12,19 @@ const getUsers = async () => {
 
 const createUser = async (newUser, idAdmin) => {
     try {
-        //membuat history baru dan langsung dijadikan array untuk inisiasi
-        const newLog = [JSON.stringify({ "date": new Date(), "author": idAdmin, "message": "account created"})]
+        //langsung membuat log baru saat akun dibuat
+        const newLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                message: 'account created',
+            }),
+        ]
 
-        const result = await db.query('INSERT INTO users (email, password, createdAt, logs) VALUES ($1, $2, $3, $4)', [newUser.email, newUser.password, new Date(), newLog])
+        const result = await db.query(
+            'INSERT INTO users (email, password, createdAt, logs, histories) VALUES ($1, $2, $3, $4, $5)',
+            [newUser.email, newUser.password, new Date(), newLog, []]
+        )
         return result
     } catch (error) {
         console.error('Error menambahkan user:', error)
@@ -23,9 +32,41 @@ const createUser = async (newUser, idAdmin) => {
     }
 }
 
+const updateUserPassword = async (userId, password, message) => {
+    try {
+        const newLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: userId,
+                message: 'password updated',
+            }),
+        ]
+        const newHistory = [
+            JSON.stringify({
+                date: new Date(),
+                author: userId,
+                old: "secret",
+                new: "secret",
+                message: message,
+            }),
+        ]
+
+        var result = await db.query(
+            'UPDATE users SET password = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
+            [password, newLog, newHistory, userId]
+        )
+        return result
+    } catch (error) {
+        console.error('Error mengganti password user:', error)
+        throw error
+    }
+}
+
 const findUser = async (email) => {
     try {
-        const result = await db.query('SELECT * FROM users WHERE email = $1', [email])
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [
+            email,
+        ])
         if (result.rows.length === 0) {
             return null
         }
@@ -38,88 +79,145 @@ const findUser = async (email) => {
 
 const updateUserPhoto = async (userId, idAdmin, filePath, message) => {
     try {
-        const oldPhotoPath = await getUserPhotoPath(userId);
+        const oldPhotoPath = await getUserPhotoPath(userId)
 
-        const newLog = [JSON.stringify({ "date": new Date(), "author": idAdmin, "message": "account updated"})]
-        const newHistory = [JSON.stringify({"date": new Date(), "author": idAdmin, "old": oldPhotoPath, "new": filePath, "message": message})]
+        const newLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                message: 'account updated',
+            }),
+        ]
+        const newHistory = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                old: oldPhotoPath,
+                new: filePath,
+                message: message,
+            }),
+        ]
 
-        var result = await db.query('UPDATE users SET foto = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4', 
-                                    [filePath, newLog, newHistory, userId]);        
+        var result = await db.query(
+            'UPDATE users SET foto = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
+            [filePath, newLog, newHistory, userId]
+        )
 
-        return result;
+        return result
     } catch (error) {
-        console.error('Error updating user photo:', error);
-        throw error;
+        console.error('Error updating user photo:', error)
+        throw error
     }
 }
 
 const getUserPhotoPath = async (userId) => {
     try {
-        const result = await db.query('SELECT foto FROM users WHERE id = $1', [userId]);
+        const result = await db.query('SELECT foto FROM users WHERE id = $1', [
+            userId,
+        ])
         if (result.rows.length > 0) {
-            return result.rows[0].foto;
+            return result.rows[0].foto
         } else {
-            return null; // Atau throw new Error('User photo not found');
+            return null
         }
     } catch (error) {
-        console.error('Error getting user photo:', error);
-        throw error;
+        console.error('Error getting user photo:', error)
+        throw error
     }
 }
 
 const updateUserIjazah = async (userId, idAdmin, filePath, message) => {
     try {
-        const oldIjazahPath = await getUserIjazahPath(userId);
+        const oldIjazahPath = await getUserIjazahPath(userId)
 
-        const newLog = [JSON.stringify({ "date": new Date(), "author": idAdmin, "message": "account updated"})]
-        const newHistory = [JSON.stringify({"date": new Date(), "author": idAdmin, "old": oldIjazahPath, "new": filePath, "message": message})]
+        const newLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                message: 'account updated',
+            }),
+        ]
+        const newHistory = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                old: oldIjazahPath,
+                new: filePath,
+                message: message,
+            }),
+        ]
 
-        var result = await db.query('UPDATE users SET ijazah = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4', 
-                                    [filePath, newLog, newHistory, userId]);        
+        var result = await db.query(
+            'UPDATE users SET ijazah = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
+            [filePath, newLog, newHistory, userId]
+        )
 
-        return result;
+        return result
     } catch (error) {
-        console.error('Error updating user ijazah:', error);
-        throw error;
+        console.error('Error updating user ijazah:', error)
+        throw error
     }
 }
 
 const getUserIjazahPath = async (userId) => {
     try {
-        const result = await db.query('SELECT ijazah FROM users WHERE id = $1', [userId]);
+        const result = await db.query(
+            'SELECT ijazah FROM users WHERE id = $1',
+            [userId]
+        )
         if (result.rows.length > 0) {
-            return result.rows[0].ijazah;
+            return result.rows[0].ijazah
         } else {
-            return null; // Atau throw new Error('User photo not found');
+            return null // Atau throw new Error('User photo not found');
         }
     } catch (error) {
-        console.error('Error getting user ijazah:', error);
-        throw error;
+        console.error('Error getting user ijazah:', error)
+        throw error
     }
 }
 
 const getUserLogs = async (userId) => {
     try {
-        const result = await db.query('SELECT logs FROM users WHERE id = $1', [userId]);
+        const result = await db.query('SELECT logs FROM users WHERE id = $1', [
+            userId,
+        ])
         if (result.rows.length > 0) {
-            return result.rows[0].logs;
+            return result.rows[0].logs
         } else {
-            return null; 
+            return null
         }
     } catch (error) {
-        console.error('Error getting user ijazah:', error);
-        throw error;
+        console.error('Error getting user logs:', error)
+        throw error
     }
 }
 
+const getUserHistories = async (userId) => {
+    try {
+        const result = await db.query('SELECT histories FROM users WHERE id = $1', [
+            userId,
+        ])
 
-module.exports = { 
+        if (result.rows.length > 0) {
+            return result.rows[0].histories
+        } else {
+            return null
+        }
+    } catch (error) {
+        console.error('Error getting user histories:', error)
+        throw error
+    }
+}
+
+module.exports = {
     getUsers,
     createUser,
+    updateUserPassword,
     findUser,
     updateUserPhoto,
     getUserPhotoPath,
     updateUserIjazah,
     getUserIjazahPath,
-    getUserLogs
- }
+    getUserLogs,
+    getUserHistories
+}

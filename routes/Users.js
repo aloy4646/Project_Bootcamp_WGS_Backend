@@ -43,6 +43,30 @@ router.get('/', async (req, res) => {
     }
 })
 
+
+router.put('/password/:id', async (req, res) => {
+    try {
+        const userId = req.params.id
+        const {message, password} = req.body
+
+        console.log({message:message, password:password});
+
+        bcrypt.hash(password, 10).then(async (hash) => {
+            await users_controller.updateUserPassword(userId, hash, message)
+
+            res.json({ status: 200, message: 'password changed successfully' })
+        })
+
+    }catch (error){
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body
@@ -65,7 +89,6 @@ router.post('/login', async (req, res) => {
                 return
             }
 
-            // res.json({success:"login success"})
             res.json({ status: 200, message: 'login success' })
         })
     } catch (error) {
@@ -86,7 +109,7 @@ router.put('/photo/:id', imageUploads.single('image'), async (req, res) => {
 
         await users_controller.updateUserPhoto(userId, idAdmin, filePath, message)
 
-        res.json({ status: 'image received' })
+        res.json({ status: 200, message:'image received'})
     } catch (error) {
         const filePath = req.file.path
 
@@ -148,7 +171,7 @@ router.put('/ijazah/:id', pdfUploads.single('ijazah'), async (req, res) => {
 
         await users_controller.updateUserIjazah(userId, idAdmin, filePath, message)
 
-        res.json({ status: 'ijazah received' })
+        res.json({ status: 200, message:'ijazah received'})
     } catch (error) {
         const filePath = req.file.path
 
@@ -210,7 +233,27 @@ router.get('/logs/:id', async (req, res) => {
         // Kirim file sebagai respons JSON
         res.status(200).json({
             status: 200,
-            data: logs
+            logs
+        })
+    } catch (error) {
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
+router.get('/histories/:id', async (req, res) => {
+    try {
+        const userId = req.params.id
+        const histories = await users_controller.getUserHistories(userId)
+
+        // Kirim file sebagai respons JSON
+        res.status(200).json({
+            status: 200,
+            histories
         })
     } catch (error) {
         res.status(500)
