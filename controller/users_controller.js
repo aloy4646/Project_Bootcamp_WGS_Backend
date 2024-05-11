@@ -45,8 +45,8 @@ const updateUserPassword = async (userId, password, message) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                old: "secret",
-                new: "secret",
+                old: 'secret',
+                new: 'secret',
                 message: message,
             }),
         ]
@@ -77,6 +77,138 @@ const findUser = async (email) => {
     }
 }
 
+const updateUserRequest = async (userId, message, oldData, newData) => {
+    try {
+        const newLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: userId,
+                message: 'requesting to update data',
+            }),
+        ]
+
+        var result = await db.query(
+            'INSERT INTO update_wait ("idUser", message, old, new, date) VALUES ($1, $2, $3, $4, NOW())',
+            [userId, message, oldData, newData]
+        )
+
+        if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                'UPDATE users SET logs = logs || $1 WHERE id = $2',
+                [newLog, userId]
+            )
+        }
+
+        return result
+    } catch (error) {
+        console.error('Error updating user document:', error)
+        throw error
+    }
+}
+
+const getUserData = async (kolom, userId) => {
+    try {
+        const kumpulanKolom = kolom.join(', ')
+
+        var result = await db.query(
+            `SELECT (${kumpulanKolom}) FROM users WHERE id = $1`,
+            [userId]
+        )
+
+        if (result.rows.length > 0) {
+            if (result.rows[0].row) {
+                return result.rows[0].row
+            }else{
+                //jika hanya 1 field
+                return result.rows[0][kumpulanKolom]
+            }
+        }
+
+        return null
+    } catch (error) {
+        console.error('Error updating user document:', error)
+        throw error
+    }
+}
+
+
+const getUpdateWait = async (update_waitId) => {
+    try {
+        const result = await db.query('SELECT * FROM update_wait WHERE id = $1', [update_waitId])
+        if (result.rows.length === 0) {
+            return null
+        }
+        return result.rows[0]
+
+    } catch (error) {
+        console.error('Error getting update wait:', error)
+        throw error
+    }
+}
+
+const acceptUpdateRequest = async (update_wait, idAdmin, stringQuery) => {
+    try {
+        const newUserLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                message: 'update request accepted',
+            }),
+        ]
+
+        const newAdminLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                message: 'accepting update request',
+            }),
+        ]
+
+        const newUserHistory = [
+            JSON.stringify({
+                date: new Date(),
+                author: idAdmin,
+                old: update_wait.old,
+                new: update_wait.new,
+                message: update_wait.message,
+            }),
+        ]
+
+        var result = await db.query(
+            `UPDATE users SET ${stringQuery}, updatedat = NOW(), logs = logs || $1, histories = histories || $2 WHERE id = $3`,
+            [newUserLog, newUserHistory, update_wait.idUser]
+        )
+
+        if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                `UPDATE users SET logs = logs || $1 WHERE id = $2`,
+                [newAdminLog, idAdmin]
+            )
+        }
+
+        if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                `UPDATE update_wait SET accepted = true WHERE id = $1`,
+                [update_wait.id]
+            )
+        }
+        
+        if (result.rowCount > 0) {
+            return result
+        }
+
+        return null
+
+    } catch (error) {
+        console.error('Error getting update wait:', error)
+        throw error
+    }
+}
+
+
 const updateUserPhoto = async (userId, idAdmin, filePath, message) => {
     try {
         const oldPhotoPath = await getUserPhotoPath(userId)
@@ -84,8 +216,7 @@ const updateUserPhoto = async (userId, idAdmin, filePath, message) => {
         const newLog = [
             JSON.stringify({
                 date: new Date(),
-                author: idAdmin,
-                message: 'account updated',
+                message: 'sent update request',
             }),
         ]
         const newHistory = [
@@ -194,9 +325,10 @@ const getUserLogs = async (userId) => {
 
 const getUserHistories = async (userId) => {
     try {
-        const result = await db.query('SELECT histories FROM users WHERE id = $1', [
-            userId,
-        ])
+        const result = await db.query(
+            'SELECT histories FROM users WHERE id = $1',
+            [userId]
+        )
 
         if (result.rows.length > 0) {
             return result.rows[0].histories
@@ -214,10 +346,10 @@ module.exports = {
     createUser,
     updateUserPassword,
     findUser,
-    updateUserPhoto,
-    getUserPhotoPath,
-    updateUserIjazah,
-    getUserIjazahPath,
+    updateUserRequest,
+    getUserData,
+    getUpdateWait,
+    acceptUpdateRequest,
     getUserLogs,
-    getUserHistories
+    getUserHistories,
 }

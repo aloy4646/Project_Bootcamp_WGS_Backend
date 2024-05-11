@@ -15,8 +15,11 @@ app.use(morgan("dev"))
 
 app.use(express.static('public'))
 
-const usersRouter = require("./routes/Users")
-app.use("/users", usersRouter)
+const routes = require("./routes/index")
+app.use("/users", routes.usersRouter)
+app.use("/users/documents", routes.documentsRouter)
+app.use("/admin", routes.adminRouter)
+
 
 app.use('/', (req, res) => {
     res.status(404)
