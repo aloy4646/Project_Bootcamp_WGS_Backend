@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const users_controller = require('../controller/users_controller')
 
-// update request from user
+// accept update request from user
 router.put('/:id', async (req, res) => {
     try {
         const adminId = req.params.id
@@ -11,8 +11,8 @@ router.put('/:id', async (req, res) => {
         const update_wait = await users_controller.getUpdateWait(update_waitId)
         console.log({ update_wait })
 
-        const arrayNamaKolom = Object.keys(update_wait.new);
-        const arrayValue = Object.values(update_wait.new);
+        const arrayNamaKolom = Object.keys(update_wait.new)
+        const arrayValue = Object.values(update_wait.new)
 
         console.log('type arrayNamaKolom:', typeof arrayNamaKolom)
         console.log('type arrayValue:', typeof arrayValue)
@@ -23,15 +23,23 @@ router.put('/:id', async (req, res) => {
             })
             .join(', ')
 
-        console.log("stringQuery: ", stringQuery);
+        console.log('stringQuery: ', stringQuery)
 
-        const acceptResult = await users_controller.acceptUpdateRequest(update_wait, adminId, stringQuery, arrayValue)
-        
-        if(!acceptResult){
+        const acceptResult = await users_controller.acceptUpdateRequest(
+            update_wait,
+            adminId,
+            stringQuery,
+            arrayValue
+        )
+
+        if (!acceptResult) {
             throw new Error('Error accepting user update request')
         }
 
-        res.json({ status: 200, message: `update request ${update_waitId} accepted` })
+        res.json({
+            status: 200,
+            message: `update request ${update_waitId} accepted`,
+        })
     } catch (error) {
         res.status(500)
         res.json({

@@ -2,7 +2,9 @@ const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
 const users_controller = require('../controller/users_controller')
+const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
+const fs = require('fs')
 
 router.post('/', async (req, res) => {
     try {
@@ -103,6 +105,112 @@ router.post('/login', async (req, res) => {
     }
 })
 
+//update request from user (data pribadi, data kerabat dan informasi tambahan)
+router.put('/:id', imageUploads.single('foto'), async (req, res) => {
+    try {
+        const userId = req.params.id
+        const message = req.body.message
+
+        var arrayKolom = []
+        var arrayValue = []
+
+        const propertiesToCheck = [
+            'email',
+            'nama_lengkap',
+            'nama_panggilan',
+            'nomor_telepon',
+            'email_kantor',
+            'alamat_rumah',
+            'alamat_tinggal',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'nama_kontak_darurat',
+            'nomor_telepon_kontak_darurat',
+            'nama_orang_tua',
+            'nama_pasangan',
+            'nama_saudara',
+            'tanggal_masuk',
+            'tanggal_keluar',
+        ]
+
+        propertiesToCheck.forEach((property) => {
+            if (req.body[property]) {
+                arrayValue.push(req.body[property])
+                arrayKolom.push(property)
+            }
+        })
+
+        // Cek apakah ada field foto pada request
+        if (req.file && req.file.path) {
+            arrayValue.push(req.file.path)
+            arrayKolom.push('foto')
+        }
+
+        console.log({ arrayKolom: arrayKolom, arrayValue: arrayValue })
+
+        var oldData = await users_controller.getUserData(arrayKolom, userId)
+        let oldDataCleaned = ''
+
+        if (oldData) {
+            //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
+            let oldDataCleaned = oldData.substring(1)
+            oldDataCleaned = oldDataCleaned.substring(
+                0,
+                oldDataCleaned.length - 1
+            )
+        }
+
+        console.log({ oldData: oldData, oldDataCleaned: oldDataCleaned })
+
+        // menggabungan nilai dari oldDataCleaned dan arrayKolom
+        const oldDataArray = oldDataCleaned.split(',')
+        console.log({ oldDataArray: oldDataArray })
+        const oldDataJSON = {}
+        arrayKolom.forEach((kolom, index) => {
+            oldDataJSON[kolom] = oldDataArray[index]
+        })
+
+        const newDataJSON = {}
+        arrayKolom.forEach((kolom, index) => {
+            newDataJSON[kolom] = arrayValue[index]
+        })
+
+        console.log({ oldDataJSON: oldDataJSON, newDataJSON: newDataJSON })
+
+        const result = await users_controller.updateUserRequest(
+            userId,
+            message,
+            oldDataJSON,
+            newDataJSON
+        )
+
+        if (!result) {
+            throw new Error('Error updating user document')
+        }
+
+        res.json({ status: 200, message: 'update request stored' })
+    } catch (error) {
+        if (req.file && req.file.path) {
+            const fotoPath = req.file.path
+
+            // Hapus file jika ada kesalahan
+            fs.unlink(fotoPath, (err) => {
+                if (err) {
+                    console.error('Gagal menghapus file:', err)
+                    return
+                }
+                console.log('File berhasil dihapus:', fotoPath)
+            })
+        }
+
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
 
 router.get('/logs/:id', async (req, res) => {
     try {

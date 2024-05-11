@@ -110,16 +110,20 @@ const updateUserRequest = async (userId, message, oldData, newData) => {
 const getUserData = async (kolom, userId) => {
     try {
         const kumpulanKolom = kolom.join(', ')
+        console.log(kumpulanKolom)
 
         var result = await db.query(
             `SELECT (${kumpulanKolom}) FROM users WHERE id = $1`,
             [userId]
         )
 
+        console.log({ result: result.rows[0] })
+
         if (result.rows.length > 0) {
             if (result.rows[0].row) {
                 return result.rows[0].row
-            }else{
+            } else {
+                console.log('masuk sini')
                 //jika hanya 1 field
                 return result.rows[0][kumpulanKolom]
             }
@@ -132,15 +136,16 @@ const getUserData = async (kolom, userId) => {
     }
 }
 
-
 const getUpdateWait = async (update_waitId) => {
     try {
-        const result = await db.query('SELECT * FROM update_wait WHERE id = $1', [update_waitId])
+        const result = await db.query(
+            'SELECT * FROM update_wait WHERE id = $1',
+            [update_waitId]
+        )
         if (result.rows.length === 0) {
             return null
         }
         return result.rows[0]
-
     } catch (error) {
         console.error('Error getting update wait:', error)
         throw error
@@ -191,55 +196,53 @@ const acceptUpdateRequest = async (update_wait, idAdmin, stringQuery) => {
         if (result.rowCount > 0) {
             result = null
             result = await db.query(
-                `UPDATE update_wait SET accepted = true WHERE id = $1`,
-                [update_wait.id]
+                `UPDATE update_wait SET idAdmin = $1, updatedat = NOW() WHERE id = $2`,
+                [idAdmin, update_wait.id]
             )
         }
-        
+
         if (result.rowCount > 0) {
             return result
         }
 
         return null
-
     } catch (error) {
         console.error('Error getting update wait:', error)
         throw error
     }
 }
 
+// const updateUserPhoto = async (userId, idAdmin, filePath, message) => {
+//     try {
+//         const oldPhotoPath = await getUserPhotoPath(userId)
 
-const updateUserPhoto = async (userId, idAdmin, filePath, message) => {
-    try {
-        const oldPhotoPath = await getUserPhotoPath(userId)
+//         const newLog = [
+//             JSON.stringify({
+//                 date: new Date(),
+//                 message: 'sent update request',
+//             }),
+//         ]
+//         const newHistory = [
+//             JSON.stringify({
+//                 date: new Date(),
+//                 author: idAdmin,
+//                 old: oldPhotoPath,
+//                 new: filePath,
+//                 message: message,
+//             }),
+//         ]
 
-        const newLog = [
-            JSON.stringify({
-                date: new Date(),
-                message: 'sent update request',
-            }),
-        ]
-        const newHistory = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                old: oldPhotoPath,
-                new: filePath,
-                message: message,
-            }),
-        ]
+//         var result = await db.query(
+//             'UPDATE users SET foto = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
+//             [filePath, newLog, newHistory, userId]
+//         )
 
-        var result = await db.query(
-            'UPDATE users SET foto = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
-            [filePath, newLog, newHistory, userId]
-        )
-
-        return result
-    } catch (error) {
-        console.error('Error updating user photo:', error)
-        throw error
-    }
-}
+//         return result
+//     } catch (error) {
+//         console.error('Error updating user photo:', error)
+//         throw error
+//     }
+// }
 
 const getUserPhotoPath = async (userId) => {
     try {

@@ -2,18 +2,23 @@ const express = require('express')
 const router = express.Router()
 const fs = require('fs')
 const mime = require('mime-types')
-const {imageUploads, pdfUploads} = require('../storage/storage') 
+const { imageUploads, pdfUploads } = require('../storage/storage')
 const users_controller = require('../controller/users_controller')
 
 router.put('/photo/:id', imageUploads.single('image'), async (req, res) => {
     try {
         const userId = req.params.id
-        const {message, idAdmin} = req.body
+        const { message, idAdmin } = req.body
         const filePath = req.file.path
 
-        await users_controller.updateUserPhoto(userId, idAdmin, filePath, message)
+        await users_controller.updateUserPhoto(
+            userId,
+            idAdmin,
+            filePath,
+            message
+        )
 
-        res.json({ status: 200, message:'image received'})
+        res.json({ status: 200, message: 'image received' })
     } catch (error) {
         const filePath = req.file.path
 
@@ -25,7 +30,7 @@ router.put('/photo/:id', imageUploads.single('image'), async (req, res) => {
             }
             console.log('File berhasil dihapus:', filePath)
         })
-        
+
         res.status(500)
         res.json({
             status: 500,
@@ -40,11 +45,11 @@ router.get('/photo/:id', async (req, res) => {
         const userId = req.params.id
         const filePath = await users_controller.getUserPhotoPath(userId)
 
-        if(!filePath){
+        if (!filePath) {
             res.status(404)
             res.json({
                 status: 404,
-                message: 'Photo not found'
+                message: 'Photo not found',
             })
             return
         }
@@ -79,12 +84,17 @@ router.get('/photo/:id', async (req, res) => {
 router.put('/ijazah/:id', pdfUploads.single('ijazah'), async (req, res) => {
     try {
         const userId = req.params.id
-        const {message, idAdmin} = req.body
+        const { message, idAdmin } = req.body
         const filePath = req.file.path
 
-        await users_controller.updateUserIjazah(userId, idAdmin, filePath, message)
+        await users_controller.updateUserIjazah(
+            userId,
+            idAdmin,
+            filePath,
+            message
+        )
 
-        res.json({ status: 200, message:'ijazah received'})
+        res.json({ status: 200, message: 'ijazah received' })
     } catch (error) {
         const filePath = req.file.path
 
@@ -111,11 +121,11 @@ router.get('/ijazah/:id', async (req, res) => {
         const userId = req.params.id
         const filePath = await users_controller.getUserIjazahPath(userId)
 
-        if(!filePath){
+        if (!filePath) {
             res.status(404)
             res.json({
                 status: 404,
-                message: 'Ijazah not found'
+                message: 'Ijazah not found',
             })
             return
         }
@@ -147,9 +157,7 @@ router.get('/ijazah/:id', async (req, res) => {
     }
 })
 
-
-
-// update request from user
+// update request from user (dokumen)
 router.put(
     '/:id',
     pdfUploads.fields([
@@ -203,12 +211,15 @@ router.put(
                 userId
             )
 
-            //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-            let oldDataCleaned = oldData.substring(1)
-            oldDataCleaned = oldDataCleaned.substring(
-                0,
-                oldDataCleaned.length - 1
-            )
+            let oldDataCleaned = ''
+            if (oldData) {
+                //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
+                let oldDataCleaned = oldData.substring(1)
+                oldDataCleaned = oldDataCleaned.substring(
+                    0,
+                    oldDataCleaned.length - 1
+                )
+            }
 
             // menggabungan nilai dari oldDataCleaned dan arrayKolom
             // hasilnya menjadi seperti ini {"ktp": "...", "npwp": "...", dst}
@@ -223,28 +234,32 @@ router.put(
                 newDataJSON[kolom] = arrayValue[index]
             })
 
-            const result = await users_controller.updateUserRequest(userId, message, oldDataJSON, newDataJSON)
+            const result = await users_controller.updateUserRequest(
+                userId,
+                message,
+                oldDataJSON,
+                newDataJSON
+            )
 
-            if(!result){
+            if (!result) {
                 throw new Error('Error updating user document')
             }
 
             res.json({ status: 200, message: 'update request stored' })
         } catch (error) {
-
             //menghapus file jika terjadi kesalahan
             if (req.files) {
                 Object.values(req.files).forEach((files) => {
                     files.forEach((file) => {
                         fs.unlink(file.path, (err) => {
                             if (err) {
-                                console.error('Gagal menghapus file:', err);
-                                return;
+                                console.error('Gagal menghapus file:', err)
+                                return
                             }
-                            console.log('File berhasil dihapus:', file.path);
-                        });
-                    });
-                });
+                            console.log('File berhasil dihapus:', file.path)
+                        })
+                    })
+                })
             }
 
             res.status(500)
@@ -256,8 +271,5 @@ router.put(
         }
     }
 )
-
-
-
 
 module.exports = router
