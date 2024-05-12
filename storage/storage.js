@@ -43,7 +43,16 @@ const imageUploads = createUploadConfig('../public/imageUploads', [
 // Konfigurasi upload untuk PDF
 const pdfUploads = createUploadConfig('../public/pdfUploads', ['.pdf'])
 
+// Konfigurasi upload untuk Sertufikat
+const sertifikatUploads = createUploadConfig('../public/sertifikatUploads', [
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.pdf'
+])
+
 module.exports = {
     imageUploads,
     pdfUploads,
+    sertifikatUploads
 }

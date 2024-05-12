@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const users_controller = require('../controller/users_controller')
+const { users_controller } = require('../controller/index')
 const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
 const fs = require('fs')
@@ -37,7 +37,8 @@ router.get('/', async (req, res) => {
     try {
         console.log({ dirname: __dirname })
         const contacts = await users_controller.getUsers()
-        // res.json(contacts)
+        console.log({ contacts: contacts });
+        
         res.json({ status: 200, contacts: contacts })
     } catch (error) {
         res.status(500)

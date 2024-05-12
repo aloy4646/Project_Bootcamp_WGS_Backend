@@ -88,7 +88,7 @@ const updateUserRequest = async (userId, message, oldData, newData) => {
         ]
 
         var result = await db.query(
-            'INSERT INTO update_wait ("idUser", message, old, new, date) VALUES ($1, $2, $3, $4, NOW())',
+            'INSERT INTO update_request ("idUser", message, old, new, date) VALUES ($1, $2, $3, $4, NOW())',
             [userId, message, oldData, newData]
         )
 
@@ -136,180 +136,6 @@ const getUserData = async (kolom, userId) => {
     }
 }
 
-const getUpdateWait = async (update_waitId) => {
-    try {
-        const result = await db.query(
-            'SELECT * FROM update_wait WHERE id = $1',
-            [update_waitId]
-        )
-        if (result.rows.length === 0) {
-            return null
-        }
-        return result.rows[0]
-    } catch (error) {
-        console.error('Error getting update wait:', error)
-        throw error
-    }
-}
-
-const acceptUpdateRequest = async (update_wait, idAdmin, stringQuery) => {
-    try {
-        const newUserLog = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                message: 'update request accepted',
-            }),
-        ]
-
-        const newAdminLog = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                message: 'accepting update request',
-            }),
-        ]
-
-        const newUserHistory = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                old: update_wait.old,
-                new: update_wait.new,
-                message: update_wait.message,
-            }),
-        ]
-
-        var result = await db.query(
-            `UPDATE users SET ${stringQuery}, updatedat = NOW(), logs = logs || $1, histories = histories || $2 WHERE id = $3`,
-            [newUserLog, newUserHistory, update_wait.idUser]
-        )
-
-        if (result.rowCount > 0) {
-            result = null
-            result = await db.query(
-                `UPDATE users SET logs = logs || $1 WHERE id = $2`,
-                [newAdminLog, idAdmin]
-            )
-        }
-
-        if (result.rowCount > 0) {
-            result = null
-            result = await db.query(
-                `UPDATE update_wait SET idAdmin = $1, updatedat = NOW() WHERE id = $2`,
-                [idAdmin, update_wait.id]
-            )
-        }
-
-        if (result.rowCount > 0) {
-            return result
-        }
-
-        return null
-    } catch (error) {
-        console.error('Error getting update wait:', error)
-        throw error
-    }
-}
-
-// const updateUserPhoto = async (userId, idAdmin, filePath, message) => {
-//     try {
-//         const oldPhotoPath = await getUserPhotoPath(userId)
-
-//         const newLog = [
-//             JSON.stringify({
-//                 date: new Date(),
-//                 message: 'sent update request',
-//             }),
-//         ]
-//         const newHistory = [
-//             JSON.stringify({
-//                 date: new Date(),
-//                 author: idAdmin,
-//                 old: oldPhotoPath,
-//                 new: filePath,
-//                 message: message,
-//             }),
-//         ]
-
-//         var result = await db.query(
-//             'UPDATE users SET foto = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
-//             [filePath, newLog, newHistory, userId]
-//         )
-
-//         return result
-//     } catch (error) {
-//         console.error('Error updating user photo:', error)
-//         throw error
-//     }
-// }
-
-const getUserPhotoPath = async (userId) => {
-    try {
-        const result = await db.query('SELECT foto FROM users WHERE id = $1', [
-            userId,
-        ])
-        if (result.rows.length > 0) {
-            return result.rows[0].foto
-        } else {
-            return null
-        }
-    } catch (error) {
-        console.error('Error getting user photo:', error)
-        throw error
-    }
-}
-
-const updateUserIjazah = async (userId, idAdmin, filePath, message) => {
-    try {
-        const oldIjazahPath = await getUserIjazahPath(userId)
-
-        const newLog = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                message: 'account updated',
-            }),
-        ]
-        const newHistory = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                old: oldIjazahPath,
-                new: filePath,
-                message: message,
-            }),
-        ]
-
-        var result = await db.query(
-            'UPDATE users SET ijazah = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
-            [filePath, newLog, newHistory, userId]
-        )
-
-        return result
-    } catch (error) {
-        console.error('Error updating user ijazah:', error)
-        throw error
-    }
-}
-
-const getUserIjazahPath = async (userId) => {
-    try {
-        const result = await db.query(
-            'SELECT ijazah FROM users WHERE id = $1',
-            [userId]
-        )
-        if (result.rows.length > 0) {
-            return result.rows[0].ijazah
-        } else {
-            return null // Atau throw new Error('User photo not found');
-        }
-    } catch (error) {
-        console.error('Error getting user ijazah:', error)
-        throw error
-    }
-}
-
 const getUserLogs = async (userId) => {
     try {
         const result = await db.query('SELECT logs FROM users WHERE id = $1', [
@@ -351,8 +177,6 @@ module.exports = {
     findUser,
     updateUserRequest,
     getUserData,
-    getUpdateWait,
-    acceptUpdateRequest,
     getUserLogs,
     getUserHistories,
 }
