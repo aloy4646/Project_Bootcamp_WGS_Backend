@@ -1,9 +1,15 @@
 const multer = require('multer')
 const path = require('path')
+const fs = require('fs')
 
 
-// Fungsi untuk membuat konfigurasi penyimpanan dan middleware upload multer
+// fungsi untuk membuat konfigurasi penyimpanan dan middleware upload multer
 function createUploadConfig(destinationFolder, allowedExtensions) {
+    // mengecek apakah direktori tujuan sudah ada, jika tidak, membuatnya
+    if (!fs.existsSync(destinationFolder)) {
+        fs.mkdirSync(destinationFolder, { recursive: true });
+    }
+
     const storage = multer.diskStorage({
         destination: function (req, file, callback) {
             const uploadPath = path.join(__dirname, destinationFolder)
@@ -33,17 +39,17 @@ function createUploadConfig(destinationFolder, allowedExtensions) {
     return upload
 }
 
-// Konfigurasi upload untuk gambar
+//konfigurasi upload untuk gambar
 const imageUploads = createUploadConfig('../public/imageUploads', [
     '.png',
     '.jpg',
     '.jpeg',
 ])
 
-// Konfigurasi upload untuk PDF
+//konfigurasi upload untuk PDF
 const pdfUploads = createUploadConfig('../public/pdfUploads', ['.pdf'])
 
-// Konfigurasi upload untuk Sertufikat
+//konfigurasi upload untuk Sertufikat
 const sertifikatUploads = createUploadConfig('../public/sertifikatUploads', [
     '.png',
     '.jpg',

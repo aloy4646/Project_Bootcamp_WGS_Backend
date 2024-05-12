@@ -11,7 +11,7 @@ const getUpdateRequest = async (update_requestId) => {
         }
         return result.rows[0]
     } catch (error) {
-        console.error('Error getting update wait:', error)
+        console.error('Error getting update request:', error)
         throw error
     }
 }
@@ -42,7 +42,7 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
                 new: update_request.new,
                 message: update_request.message,
             }),
-        ]  
+        ]
 
         //update user
         var result = await db.query(
@@ -74,12 +74,17 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
 
         return null
     } catch (error) {
-        console.error('Error getting update wait:', error)
+        console.error('Error accepting update request:', error)
         throw error
     }
 }
 
-const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) => {
+const rejectUpdateRequest = async (
+    update_requestId,
+    idAdmin,
+    userId,
+    alasan
+) => {
     try {
         const newUserLog = [
             JSON.stringify({
@@ -112,7 +117,7 @@ const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) =>
             )
         }
 
-        //delete update wait
+        //delete update request
         if (result.rowCount > 0) {
             result = null
             result = await db.query(
@@ -127,7 +132,7 @@ const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) =>
 
         return null
     } catch (error) {
-        console.error('Error getting update wait:', error)
+        console.error('Error rejecting update request:', error)
         throw error
     }
 }
@@ -135,14 +140,16 @@ const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) =>
 //get update_request yang belum di-accept
 const getUpdateRequests = async () => {
     try {
-        const result = await db.query('SELECT * FROM update_request WHERE idAdmin IS NULL OR updatedat IS NULL')
-        if(result.rows) {
+        const result = await db.query(
+            'SELECT * FROM update_request WHERE idAdmin IS NULL OR updatedat IS NULL'
+        )
+        if (result.rows) {
             return result.rows
         }
 
         return null
     } catch (error) {
-        console.error('Error getting update wait:', error)
+        console.error('Error getting list update requests:', error)
         throw error
     }
 }
@@ -151,5 +158,5 @@ module.exports = {
     getUpdateRequest,
     acceptUpdateRequest,
     rejectUpdateRequest,
-    getUpdateRequests
+    getUpdateRequests,
 }

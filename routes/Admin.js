@@ -13,16 +13,11 @@ router.put('/update/accept/:update_requestId', async (req, res) => {
         const arrayNamaKolom = Object.keys(update_request.new)
         const arrayValue = Object.values(update_request.new)
 
-        console.log('type arrayNamaKolom:', typeof arrayNamaKolom)
-        console.log('type arrayValue:', typeof arrayValue)
-
         const stringQuery = arrayNamaKolom
             .map((element, index) => {
                 return `${element} = '${arrayValue[index]}'`
             })
             .join(', ')
-
-        console.log('stringQuery: ', stringQuery)
 
         const acceptResult = await admin_controller.acceptUpdateRequest(
             update_request,

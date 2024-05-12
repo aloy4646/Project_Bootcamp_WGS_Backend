@@ -33,12 +33,13 @@ router.post('/', async (req, res) => {
         })
     }
 })
+
 router.get('/', async (req, res) => {
     try {
         console.log({ dirname: __dirname })
         const contacts = await users_controller.getUsers()
-        console.log({ contacts: contacts });
-        
+        console.log({ contacts: contacts })
+
         res.json({ status: 200, contacts: contacts })
     } catch (error) {
         res.status(500)
@@ -50,9 +51,9 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.put('/password/:id', async (req, res) => {
+router.put('/password/:userId', async (req, res) => {
     try {
-        const userId = req.params.id
+        const userId = req.params.userId
         const { message, password } = req.body
 
         console.log({ message: message, password: password })
@@ -107,9 +108,9 @@ router.post('/login', async (req, res) => {
 })
 
 //update request from user (data pribadi, data kerabat dan informasi tambahan)
-router.put('/:id', imageUploads.single('foto'), async (req, res) => {
+router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
     try {
-        const userId = req.params.id
+        const userId = req.params.userId
         const message = req.body.message
 
         var arrayKolom = []
@@ -147,8 +148,6 @@ router.put('/:id', imageUploads.single('foto'), async (req, res) => {
             arrayKolom.push('foto')
         }
 
-        console.log({ arrayKolom: arrayKolom, arrayValue: arrayValue })
-
         var oldData = await users_controller.getUserData(arrayKolom, userId)
         let oldDataCleaned = ''
 
@@ -160,8 +159,6 @@ router.put('/:id', imageUploads.single('foto'), async (req, res) => {
                 oldDataCleaned.length - 1
             )
         }
-
-        console.log({ oldData: oldData, oldDataCleaned: oldDataCleaned })
 
         // menggabungan nilai dari oldDataCleaned dan arrayKolom
         const oldDataArray = oldDataCleaned.split(',')
@@ -175,8 +172,6 @@ router.put('/:id', imageUploads.single('foto'), async (req, res) => {
         arrayKolom.forEach((kolom, index) => {
             newDataJSON[kolom] = arrayValue[index]
         })
-
-        console.log({ oldDataJSON: oldDataJSON, newDataJSON: newDataJSON })
 
         const result = await users_controller.updateUserRequest(
             userId,
@@ -213,9 +208,9 @@ router.put('/:id', imageUploads.single('foto'), async (req, res) => {
     }
 })
 
-router.get('/logs/:id', async (req, res) => {
+router.get('/logs/:userId', async (req, res) => {
     try {
-        const userId = req.params.id
+        const userId = req.params.userId
         const logs = await users_controller.getUserLogs(userId)
 
         // Kirim file sebagai respons JSON
@@ -233,9 +228,9 @@ router.get('/logs/:id', async (req, res) => {
     }
 })
 
-router.get('/histories/:id', async (req, res) => {
+router.get('/histories/:userId', async (req, res) => {
     try {
-        const userId = req.params.id
+        const userId = req.params.userId
         const histories = await users_controller.getUserHistories(userId)
 
         // Kirim file sebagai respons JSON

@@ -5,7 +5,7 @@ const getUsers = async () => {
         const result = await db.query('SELECT email FROM users')
         return result.rows
     } catch (error) {
-        console.error('Error fetching contacts:', error)
+        console.error('Error getting list contacts:', error)
         throw error
     }
 }
@@ -27,7 +27,7 @@ const createUser = async (newUser, idAdmin) => {
         )
         return result
     } catch (error) {
-        console.error('Error menambahkan user:', error)
+        console.error('Error creating user:', error)
         throw error
     }
 }
@@ -57,7 +57,7 @@ const updateUserPassword = async (userId, password, message) => {
         )
         return result
     } catch (error) {
-        console.error('Error mengganti password user:', error)
+        console.error('Error changing user password:', error)
         throw error
     }
 }
@@ -72,7 +72,7 @@ const findUser = async (email) => {
         }
         return result.rows[0]
     } catch (error) {
-        console.error('Error fetching contacts:', error)
+        console.error('Error finding contact:', error)
         throw error
     }
 }
@@ -131,7 +131,7 @@ const getUserData = async (kolom, userId) => {
 
         return null
     } catch (error) {
-        console.error('Error updating user document:', error)
+        console.error('Error get user data:', error)
         throw error
     }
 }
