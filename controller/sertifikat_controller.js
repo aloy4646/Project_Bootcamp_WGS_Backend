@@ -99,7 +99,7 @@ const deleteSertifikat = async (userId, sertifikatId) => {
             }),
         ]
 
-        const result = await db.query(
+        var result = await db.query(
             'DELETE FROM sertifikat WHERE id = $1 AND "idUser" = $2',
             [sertifikatId, userId]
         )

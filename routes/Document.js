@@ -296,4 +296,28 @@ router.put(
         }
     }
 )
+
+
+router.put('/sertifikat/:sertifikatId/delete', async (req, res) => {
+    try {
+        const sertifikatId = req.params.sertifikatId
+        const userId = req.body.userId
+
+        const result = await sertifikat_controller.deleteSertifikat(userId, sertifikatId)
+
+        if (!result) {
+            throw new Error('Error deleting sertifikat')
+        }
+
+        res.json({ status: 200, message: 'sertifikat deleted' })
+    } catch (error) {
+        res.status(500)
+            res.json({
+                status: 500,
+                message: 'Internal Server Error',
+                error: error,
+            })
+    }
+})
+
 module.exports = router
