@@ -153,7 +153,7 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
 
         if (oldData) {
             //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-            let oldDataCleaned = oldData.substring(1)
+            oldDataCleaned = oldData.substring(1)
             oldDataCleaned = oldDataCleaned.substring(
                 0,
                 oldDataCleaned.length - 1
@@ -162,6 +162,8 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
 
         // menggabungan nilai dari oldDataCleaned dan arrayKolom
         const oldDataArray = oldDataCleaned.split(',')
+        console.log({ oldDataArray: oldDataArray })
+
         console.log({ oldDataArray: oldDataArray })
         const oldDataJSON = {}
         arrayKolom.forEach((kolom, index) => {

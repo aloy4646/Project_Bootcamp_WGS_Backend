@@ -54,8 +54,14 @@ const getUserSertifikat = async (userId) => {
             'SELECT * FROM sertifikat WHERE "idUser" = $1 ORDER BY tanggal_terbit DESC',
             [userId]
         )
-        if (result.rows.length > 0) {
-            return result.rows
+
+        if (result) {
+            if (result.rows && result.rows.length > 0) {
+                return result.rows
+            } else {
+                // Data ditemukan tetapi kosong
+                return []
+            }
         } else {
             return null
         }
@@ -71,6 +77,7 @@ const getDetailSertifikat = async (userId, sertifikatId) => {
             'SELECT * FROM sertifikat WHERE id = $1 AND "idUser" = $2',
             [sertifikatId, userId]
         )
+
         if (result.rowCount > 0) {
             return result.rows[0]
         } else {
@@ -102,9 +109,9 @@ const deleteSertifikat = async (userId, sertifikatId) => {
             result = await db.query(
                 'UPDATE users SET logs = logs || $1 WHERE id = $2',
                 [newLog, userId]
-            )  
+            )
         }
-            
+
         return result
     } catch (error) {
         console.error('Error deleting sertifikat:', error)

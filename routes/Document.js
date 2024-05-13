@@ -3,7 +3,10 @@ const router = express.Router()
 const fs = require('fs')
 // const mime = require('mime-types')
 const { pdfUploads, sertifikatUploads } = require('../storage/storage')
-const { users_controller, sertifikat_controller} = require('../controller/index')
+const {
+    users_controller,
+    sertifikat_controller,
+} = require('../controller/index')
 
 // update request from user (dokumen)
 router.put(
@@ -48,7 +51,7 @@ router.put(
             let oldDataCleaned = ''
             if (oldData) {
                 //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-                let oldDataCleaned = oldData.substring(1)
+                oldDataCleaned = oldData.substring(1)
                 oldDataCleaned = oldDataCleaned.substring(
                     0,
                     oldDataCleaned.length - 1
@@ -111,9 +114,11 @@ router.get('/sertifikat/:userId', async (req, res) => {
     try {
         const userId = req.params.userId
 
-        const listSertifikat = await sertifikat_controller.getUserSertifikat(userId)
+        const listSertifikat = await sertifikat_controller.getUserSertifikat(
+            userId
+        )
 
-        if(!listSertifikat) {
+        if (!listSertifikat) {
             throw new Error('Error getting user sertifikat list')
         }
 
@@ -128,16 +133,18 @@ router.get('/sertifikat/:userId', async (req, res) => {
     }
 })
 
-
 //get user sertifikat detail
 router.get('/sertifikat/:userId/:sertifikatId', async (req, res) => {
     try {
         const userId = req.params.userId
         const sertifikatId = req.params.sertifikatId
 
-        const sertifikat = await sertifikat_controller.getDetailSertifikat(userId, sertifikatId)
+        const sertifikat = await sertifikat_controller.getDetailSertifikat(
+            userId,
+            sertifikatId
+        )
 
-        if(!sertifikat) {
+        if (!sertifikat) {
             throw new Error('Error getting user sertifikat list')
         }
 
@@ -220,7 +227,7 @@ router.put(
             const sertifikatId = req.params.sertifikatId
             const userId = req.body.userId
 
-            console.log({ userId: userId, sertifikatId: sertifikatId });
+            console.log({ userId: userId, sertifikatId: sertifikatId })
 
             var arrayKolom = []
             var arrayValue = []
@@ -253,7 +260,7 @@ router.put(
                 })
                 .join(', ')
 
-            console.log({stringQuery});
+            console.log({ stringQuery })
 
             const result = await sertifikat_controller.updateSertifikat(
                 userId,
@@ -265,7 +272,7 @@ router.put(
                 throw new Error('Error updating user document')
             }
 
-            res.json({ status: 200, message: 'update request stored' })
+            res.json({ status: 200, message: 'update success' })
         } catch (error) {
             if (req.file && req.file.path) {
                 const fotoPath = req.file.path

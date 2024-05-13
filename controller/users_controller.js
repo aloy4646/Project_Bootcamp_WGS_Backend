@@ -45,8 +45,8 @@ const updateUserPassword = async (userId, password, message) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                old: 'secret',
-                new: 'secret',
+                old: { password: 'secret' },
+                new: { password: 'secret' },
                 message: message,
             }),
         ]
@@ -117,11 +117,15 @@ const getUserData = async (kolom, userId) => {
             [userId]
         )
 
-        console.log({ result: result.rows[0] })
-
         if (result.rows.length > 0) {
             if (result.rows[0].row) {
-                return result.rows[0].row
+                //jika ada data null maka akan diubah menjadi -
+                const sanitizedRow = result.rows[0].row.replace(
+                    /\(,\)/g,
+                    '(-,-)'
+                )
+
+                return sanitizedRow
             } else {
                 console.log('masuk sini')
                 //jika hanya 1 field

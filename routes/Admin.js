@@ -8,7 +8,9 @@ router.put('/update/accept/:update_requestId', async (req, res) => {
         const update_requestId = req.params.update_requestId
         const idAdmin = req.body.idAdmin
 
-        const update_request = await admin_controller.getUpdateRequest(update_requestId)
+        const update_request = await admin_controller.getUpdateRequest(
+            update_requestId
+        )
 
         const arrayNamaKolom = Object.keys(update_request.new)
         const arrayValue = Object.values(update_request.new)
@@ -50,12 +52,14 @@ router.put('/update/reject/:update_requestId', async (req, res) => {
         const update_requestId = req.params.update_requestId
         const { idAdmin, alasan } = req.body
 
-        const update_request = await admin_controller.getUpdateRequest(update_requestId)
+        const update_request = await admin_controller.getUpdateRequest(
+            update_requestId
+        )
 
         const rejectResult = await admin_controller.rejectUpdateRequest(
-            update_requestId, 
-            idAdmin, 
-            update_request.idUser, 
+            update_requestId,
+            idAdmin,
+            update_request.idUser,
             alasan
         )
 
@@ -65,7 +69,7 @@ router.put('/update/reject/:update_requestId', async (req, res) => {
 
         res.json({
             status: 200,
-            message: `update request ${update_requestId} accepted`,
+            message: `update request ${update_requestId} rejected`,
         })
     } catch (error) {
         res.status(500)
@@ -77,9 +81,8 @@ router.put('/update/reject/:update_requestId', async (req, res) => {
     }
 })
 
-
 //get list update request yang belum di-accept
-router.get('/update/', async (req, res) => {
+router.get('/update', async (req, res) => {
     try {
         const update_requests = await admin_controller.getUpdateRequests()
 
