@@ -2,8 +2,18 @@ const db = require('../db.js')
 
 const getUsers = async () => {
     try {
-        const result = await db.query('SELECT email FROM users')
+        const result = await db.query('SELECT id, email_kantor, nama_lengkap, nama_panggilan  FROM users')
         return result.rows
+    } catch (error) {
+        console.error('Error getting list contacts:', error)
+        throw error
+    }
+}
+
+const getUserDetail = async (userId) => {
+    try {
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [userId])
+        return result.rows[0]
     } catch (error) {
         console.error('Error getting list contacts:', error)
         throw error
@@ -22,8 +32,8 @@ const createUser = async (newUser, idAdmin) => {
         ]
 
         const result = await db.query(
-            'INSERT INTO users (email, password, createdAt, logs, histories) VALUES ($1, $2, $3, $4, $5)',
-            [newUser.email, newUser.password, new Date(), newLog, []]
+            'INSERT INTO users (email_kantor, password, createdAt, logs, histories) VALUES ($1, $2, $3, $4, $5)',
+            [newUser.email_kantor, newUser.password, new Date(), newLog, []]
         )
         return result
     } catch (error) {
@@ -62,10 +72,10 @@ const updateUserPassword = async (userId, password, message) => {
     }
 }
 
-const findUser = async (email) => {
+const findUser = async (email_kantor) => {
     try {
-        const result = await db.query('SELECT * FROM users WHERE email = $1', [
-            email,
+        const result = await db.query('SELECT * FROM users WHERE email_kantor = $1', [
+            email_kantor,
         ])
         if (result.rows.length === 0) {
             return null
@@ -176,6 +186,7 @@ const getUserHistories = async (userId) => {
 
 module.exports = {
     getUsers,
+    getUserDetail,
     createUser,
     updateUserPassword,
     findUser,

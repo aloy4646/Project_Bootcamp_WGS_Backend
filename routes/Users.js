@@ -8,20 +8,20 @@ const fs = require('fs')
 
 router.post('/', async (req, res) => {
     try {
-        const { email, idAdmin } = req.body
+        const { email_kantor, idAdmin } = req.body
 
         const password = generateRandomString(6, 10)
 
         bcrypt.hash(password, 10).then(async (hash) => {
             await users_controller.createUser(
-                { email, password: hash },
+                { email_kantor, password: hash },
                 idAdmin
             )
 
             res.json({
                 status: 200,
                 message: 'registration success',
-                data: { email: email, password: password },
+                data: { email_kantor, password },
             })
         })
     } catch (error) {
@@ -34,13 +34,29 @@ router.post('/', async (req, res) => {
     }
 })
 
+//get list users
 router.get('/', async (req, res) => {
     try {
-        console.log({ dirname: __dirname })
-        const contacts = await users_controller.getUsers()
-        console.log({ contacts: contacts })
+        const listKaryawan = await users_controller.getUsers()
 
-        res.json({ status: 200, contacts: contacts })
+        res.json({ status: 200, listKaryawan })
+    } catch (error) {
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
+//get user detail
+router.get('/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId
+        const karyawan = await users_controller.getUserDetail(userId)
+
+        res.json({ status: 200, karyawan })
     } catch (error) {
         res.status(500)
         res.json({
@@ -75,9 +91,9 @@ router.put('/password/:userId', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body
+        const { email_kantor, password } = req.body
 
-        const user = await users_controller.findUser(email)
+        const user = await users_controller.findUser(email_kantor)
 
         if (!user) {
             res.status(404)
@@ -117,11 +133,11 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
         var arrayValue = []
 
         const propertiesToCheck = [
-            'email',
+            'email_kantor',
             'nama_lengkap',
             'nama_panggilan',
             'nomor_telepon',
-            'email_kantor',
+            'email_pribadi',
             'alamat_rumah',
             'alamat_tinggal',
             'tempat_lahir',
