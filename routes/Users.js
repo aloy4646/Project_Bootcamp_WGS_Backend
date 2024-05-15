@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const { users_controller } = require('../controller/index')
+const { users_controller, error_log_controller } = require('../controller/index')
 const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
 const fs = require('fs')
@@ -25,6 +25,8 @@ router.post('/', async (req, res) => {
             })
         })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error registing user')
+
         res.status(500)
         res.json({
             status: 500,
@@ -58,6 +60,8 @@ router.get('/:userId', async (req, res) => {
 
         res.json({ status: 200, karyawan })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error get user detail')
+
         res.status(500)
         res.json({
             status: 500,
@@ -78,6 +82,8 @@ router.put('/password/:userId', async (req, res) => {
             res.json({ status: 200, message: 'password changed successfully' })
         })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error changing user password')
+
         res.status(500)
         res.json({
             status: 500,
@@ -211,6 +217,8 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
                 console.log('File berhasil dihapus:', fotoPath)
             })
         }
+        
+        await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update data')
 
         res.status(500)
         res.json({
@@ -232,6 +240,7 @@ router.get('/logs/:userId', async (req, res) => {
             logs,
         })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user logs')
         res.status(500)
         res.json({
             status: 500,
@@ -252,6 +261,7 @@ router.get('/histories/:userId', async (req, res) => {
             histories,
         })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user histories')
         res.status(500)
         res.json({
             status: 500,

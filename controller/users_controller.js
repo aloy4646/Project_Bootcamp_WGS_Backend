@@ -27,7 +27,7 @@ const createUser = async (newUser, idAdmin) => {
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: 'account created',
+                message: `account created with email: ${newUser.email_kantor}.`,
             }),
         ]
 
@@ -48,7 +48,7 @@ const updateUserPassword = async (userId, password, message) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                message: 'password updated',
+                message: `password updated for user: ${userId}.`,
             }),
         ]
         const newHistory = [
@@ -93,7 +93,7 @@ const updateUserRequest = async (userId, message, oldData, newData) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                message: 'requesting to update data',
+                message: `requesting to update data`,
             }),
         ]
 

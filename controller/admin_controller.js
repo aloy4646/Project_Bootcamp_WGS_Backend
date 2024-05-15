@@ -22,7 +22,7 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: 'update request accepted',
+                message: `update request with update_request_id: ${update_request.id} accepted`,
             }),
         ]
 
@@ -30,7 +30,7 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: 'accepting update request',
+                message: `accepting update request with update_request_id: ${update_request.id} and userId: ${update_request.idUser}`,
             }),
         ]
 
@@ -90,7 +90,7 @@ const rejectUpdateRequest = async (
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `update request rejected, reason: ${alasan}`,
+                message: `update request with update_request_id: ${update_request.id} rejected, reason: ${alasan}`,
             }),
         ]
 
@@ -98,7 +98,7 @@ const rejectUpdateRequest = async (
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `rejecting update request, reason: ${alasan}`,
+                message: `rejecting update request with update_request_id: ${update_request.id} and userId: ${update_request.idUser}, reason: ${alasan}`,
             }),
         ]
 
