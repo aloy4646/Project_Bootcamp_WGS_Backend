@@ -120,7 +120,6 @@ const updateUserRequest = async (userId, message, oldData, newData) => {
 const getUserData = async (kolom, userId) => {
     try {
         const kumpulanKolom = kolom.join(', ')
-        console.log(kumpulanKolom)
 
         var result = await db.query(
             `SELECT (${kumpulanKolom}) FROM users WHERE id = $1`,
@@ -137,7 +136,6 @@ const getUserData = async (kolom, userId) => {
 
                 return sanitizedRow
             } else {
-                console.log('masuk sini')
                 //jika hanya 1 field
                 return result.rows[0][kumpulanKolom]
             }

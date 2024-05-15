@@ -141,7 +141,7 @@ const rejectUpdateRequest = async (
 const getUpdateRequests = async () => {
     try {
         const result = await db.query(
-            'SELECT * FROM update_request WHERE idAdmin IS NULL OR updatedat IS NULL'
+            'SELECT a.id, a."idUser", b.nama_lengkap, a.date, a.message FROM update_request a JOIN users b ON a."idUser" = b.id WHERE a.idAdmin IS NULL OR a.updatedat IS NULL'
         )
         if (result.rows) {
             return result.rows

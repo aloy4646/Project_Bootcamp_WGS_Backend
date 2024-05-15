@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { admin_controller } = require('../controller/index')
 
+
 // accept update request from user
 router.put('/update/accept/:update_requestId', async (req, res) => {
     try {
@@ -82,7 +83,7 @@ router.put('/update/reject/:update_requestId', async (req, res) => {
 })
 
 //get list update request yang belum di-accept
-router.get('/update', async (req, res) => {
+router.get('/update-request', async (req, res) => {
     try {
         const update_requests = await admin_controller.getUpdateRequests()
 
@@ -96,5 +97,23 @@ router.get('/update', async (req, res) => {
         })
     }
 })
+
+//get update-request detail
+router.get('/update-request/:update_requestId', async (req, res) => {
+    try {
+        const update_requestId = req.params.update_requestId
+        const update_request = await admin_controller.getUpdateRequest(update_requestId)
+
+        res.json({ status: 200, update_request })
+    } catch (error) {
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
 
 module.exports = router

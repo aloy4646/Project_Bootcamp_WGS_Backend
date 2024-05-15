@@ -72,8 +72,6 @@ router.put('/password/:userId', async (req, res) => {
         const userId = req.params.userId
         const { message, password } = req.body
 
-        console.log({ message: message, password: password })
-
         bcrypt.hash(password, 10).then(async (hash) => {
             await users_controller.updateUserPassword(userId, hash, message)
 
@@ -178,9 +176,6 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
 
         // menggabungan nilai dari oldDataCleaned dan arrayKolom
         const oldDataArray = oldDataCleaned.split(',')
-        console.log({ oldDataArray: oldDataArray })
-
-        console.log({ oldDataArray: oldDataArray })
         const oldDataJSON = {}
         arrayKolom.forEach((kolom, index) => {
             oldDataJSON[kolom] = oldDataArray[index]

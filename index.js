@@ -19,6 +19,7 @@ const routes = require("./routes/index")
 app.use("/users", routes.usersRouter)
 app.use("/users/documents", routes.documentsRouter)
 app.use("/admin", routes.adminRouter)
+app.use("/file", routes.fileDownloadRouter)
 
 
 app.use('/', (req, res) => {
