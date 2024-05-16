@@ -2,7 +2,7 @@ const db = require('../db.js')
 
 const getUsers = async () => {
     try {
-        const result = await db.query('SELECT id, email_kantor, nama_lengkap, nama_panggilan  FROM users')
+        const result = await db.query('SELECT id, email_kantor, nama_lengkap, nama_panggilan FROM users ORDER BY nama_lengkap ASC')
         return result.rows
     } catch (error) {
         console.error('Error getting list contacts:', error)
@@ -125,7 +125,7 @@ const getUserData = async (kolom, userId) => {
             `SELECT (${kumpulanKolom}) FROM users WHERE id = $1`,
             [userId]
         )
-
+        
         if (result.rows.length > 0) {
             if (result.rows[0].row) {
                 //jika ada data null maka akan diubah menjadi -

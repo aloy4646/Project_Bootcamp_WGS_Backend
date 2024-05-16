@@ -1,9 +1,26 @@
 const db = require('../db.js')
 
+//get list update_request yang belum di-accept
+const getUpdateRequests = async () => {
+    try {
+        const result = await db.query(
+            'SELECT a.id, a."idUser", b.email_kantor, b.nama_lengkap, a.date, a.message FROM update_request a JOIN users b ON a."idUser" = b.id WHERE a.idAdmin IS NULL OR a.updatedat IS NULL'
+        )
+        if (result.rows) {
+            return result.rows
+        }
+
+        return null
+    } catch (error) {
+        console.error('Error getting list update requests:', error)
+        throw error
+    }
+}
+
 const getUpdateRequest = async (update_requestId) => {
     try {
         const result = await db.query(
-            'SELECT * FROM update_request WHERE id = $1',
+            'SELECT a.*, b.nama_lengkap FROM update_request a JOIN users b ON a."idUser" = b.id WHERE a.id = $1 ',
             [update_requestId]
         )
         if (result.rows.length === 0) {
@@ -90,7 +107,7 @@ const rejectUpdateRequest = async (
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `update request with update_request_id: ${update_request.id} rejected, reason: ${alasan}`,
+                message: `update request with update_request_id: ${update_requestId} rejected, reason: ${alasan}`,
             }),
         ]
 
@@ -98,7 +115,7 @@ const rejectUpdateRequest = async (
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `rejecting update request with update_request_id: ${update_request.id} and userId: ${update_request.idUser}, reason: ${alasan}`,
+                message: `rejecting update request with update_request_id: ${update_requestId} and userId: ${userId}, reason: ${alasan}`,
             }),
         ]
 
@@ -133,23 +150,6 @@ const rejectUpdateRequest = async (
         return null
     } catch (error) {
         console.error('Error rejecting update request:', error)
-        throw error
-    }
-}
-
-//get update_request yang belum di-accept
-const getUpdateRequests = async () => {
-    try {
-        const result = await db.query(
-            'SELECT a.id, a."idUser", b.nama_lengkap, a.date, a.message FROM update_request a JOIN users b ON a."idUser" = b.id WHERE a.idAdmin IS NULL OR a.updatedat IS NULL'
-        )
-        if (result.rows) {
-            return result.rows
-        }
-
-        return null
-    } catch (error) {
-        console.error('Error getting list update requests:', error)
         throw error
     }
 }

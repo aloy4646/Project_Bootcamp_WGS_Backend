@@ -4,7 +4,7 @@ const { admin_controller } = require('../controller/index')
 
 
 // accept update request from user
-router.put('/update/accept/:update_requestId', async (req, res) => {
+router.put('/update-request/accept/:update_requestId', async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const idAdmin = req.body.idAdmin
@@ -48,7 +48,7 @@ router.put('/update/accept/:update_requestId', async (req, res) => {
 })
 
 //reject update request from user
-router.put('/update/reject/:update_requestId', async (req, res) => {
+router.put('/update-request/reject/:update_requestId', async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const { idAdmin, alasan } = req.body

@@ -170,14 +170,15 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
 
         var oldData = await users_controller.getUserData(arrayKolom, userId)
         let oldDataCleaned = ''
-
-        if (oldData) {
+        if (oldData && oldData.startsWith('(') && oldData.endsWith(')')) {
             //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
             oldDataCleaned = oldData.substring(1)
             oldDataCleaned = oldDataCleaned.substring(
                 0,
                 oldDataCleaned.length - 1
             )
+        } else {
+            oldDataCleaned = oldData
         }
 
         // menggabungan nilai dari oldDataCleaned dan arrayKolom
