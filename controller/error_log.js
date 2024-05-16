@@ -12,7 +12,7 @@ const addErrorLog = async (author, message) => {
 
         var result = await db.query(
             'UPDATE users SET logs = logs || $1 WHERE id = $2',
-            [error_log, error_log.author]
+            [error_log, author]
         )
 
         return result

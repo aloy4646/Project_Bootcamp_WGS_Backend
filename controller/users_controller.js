@@ -125,9 +125,10 @@ const getUserData = async (kolom, userId) => {
             `SELECT (${kumpulanKolom}) FROM users WHERE id = $1`,
             [userId]
         )
-        
+
         if (result.rows.length > 0) {
             if (result.rows[0].row) {
+                console.log("masuk sini");
                 //jika ada data null maka akan diubah menjadi -
                 const sanitizedRow = result.rows[0].row.replace(
                     /\(,\)/g,
@@ -137,7 +138,8 @@ const getUserData = async (kolom, userId) => {
                 return sanitizedRow
             } else {
                 //jika hanya 1 field
-                return result.rows[0][kumpulanKolom]
+                const value = result.rows[0][kumpulanKolom] !== null ? result.rows[0][kumpulanKolom] : '-';
+                return value
             }
         }
 

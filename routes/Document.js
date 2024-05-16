@@ -6,6 +6,7 @@ const { pdfUploads, sertifikatUploads } = require('../storage/storage')
 const {
     users_controller,
     sertifikat_controller,
+    error_log_controller,
 } = require('../controller/index')
 
 // update request from user (dokumen)
@@ -60,6 +61,8 @@ router.put(
                 oldDataCleaned = oldData
             }
 
+            console.log({oldDataCleaned});
+
             // menggabungan nilai dari oldDataCleaned dan arrayKolom
             // hasilnya menjadi seperti ini {"ktp": "...", "npwp": "...", dst}
             const oldDataArray = oldDataCleaned.split(',')
@@ -101,7 +104,7 @@ router.put(
                 })
             }
 
-            await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update document')
+            await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update document: ' + error.message)
 
             res.status(500)
             res.json({
@@ -128,7 +131,7 @@ router.get('/sertifikat/:userId', async (req, res) => {
 
         res.json({ status: 200, listSertifikat })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user certificate list')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user certificate list' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -155,7 +158,7 @@ router.get('/sertifikat/:userId/:sertifikatId', async (req, res) => {
 
         res.json({ status: 200, sertifikat })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user certificate detail')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user certificate detail' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -214,7 +217,7 @@ router.post(
 
             res.json({ status: 200, message: 'sertifikat added' })
         } catch (error) {
-            await error_log_controller.addErrorLog(req.body.userId, 'Error creating user certificate')
+            await error_log_controller.addErrorLog(req.body.userId, 'Error creating user certificate' + error.message)
             res.status(500)
             res.json({
                 status: 500,
@@ -294,7 +297,7 @@ router.put(
                 })
             }
 
-            await error_log_controller.addErrorLog(req.body.userId, 'Error creating user certificate')
+            await error_log_controller.addErrorLog(req.body.userId, 'Error creating user certificate' + error.message)
 
             res.status(500)
             res.json({
@@ -320,7 +323,7 @@ router.put('/sertifikat/:sertifikatId/delete', async (req, res) => {
 
         res.json({ status: 200, message: 'sertifikat deleted' })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.body.userId, 'Error deleting user certificate')
+        await error_log_controller.addErrorLog(req.body.userId, 'Error deleting user certificate' + error.message)
         res.status(500)
             res.json({
                 status: 500,

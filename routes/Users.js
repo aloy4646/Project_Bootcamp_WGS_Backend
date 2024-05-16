@@ -71,6 +71,113 @@ router.get('/:userId', async (req, res) => {
     }
 })
 
+
+//get user data (data text dan image)
+router.get('/data/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId
+        var arrayKolom = [
+            'email_kantor',
+            'nama_lengkap',
+            'nama_panggilan',
+            'nomor_telepon',
+            'email_pribadi',
+            'alamat_rumah',
+            'alamat_tinggal',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'nama_kontak_darurat',
+            'nomor_telepon_kontak_darurat',
+            'nama_orang_tua',
+            'nama_pasangan',
+            'nama_saudara',
+            'tanggal_masuk',
+            'tanggal_keluar',
+            'foto',
+        ]
+
+        const karyawanResult = await users_controller.getUserData(arrayKolom, userId)
+        let karyawanString = ''
+        if (karyawanResult && karyawanResult.startsWith('(') && karyawanResult.endsWith(')')) {
+            //Value dari karyawanResult adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
+            karyawanString = karyawanResult.substring(1)
+            karyawanString = karyawanString.substring(
+                0,
+                karyawanString.length - 1
+            )
+        }else{
+            karyawanString = karyawanResult
+        }
+
+        const karyawanArray = karyawanString.split(',');
+
+        // Menggabungkan arrayKolom dan fileArray menjadi objek karyawan
+        const karyawan = arrayKolom.reduce((acc, kolom, index) => {
+            acc[kolom] = karyawanArray[index].trim().replace(/"/g, ''); // Menghilangkan spasi dan tanda kutip ganda
+            return acc;
+        }, {})
+
+        res.json({ status: 200, karyawan })
+    } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error get user detail' + error.message)
+
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
+//get user dokumen (data pdf)
+router.get('/dokumen/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId
+        var arrayKolom = [
+            'ktp',
+            'npwp',
+            'ijazah',
+            'transkrip_nilai',
+            'cv_pribadi',
+            'cv_perusahaan',
+        ]
+
+        const karyawanResult = await users_controller.getUserData(arrayKolom, userId)
+
+        let karyawanString = ''
+        if (karyawanResult && karyawanResult.startsWith('(') && karyawanResult.endsWith(')')) {
+            //Value dari karyawanResult adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
+            karyawanString = karyawanResult.substring(1)
+            karyawanString = karyawanString.substring(
+                0,
+                karyawanString.length - 1
+            )
+        }else{
+            karyawanString = karyawanResult
+        }
+
+        const karyawanArray = karyawanString.split(',');
+
+        // Menggabungkan arrayKolom dan fileArray menjadi objek karyawan
+        const karyawan = arrayKolom.reduce((acc, kolom, index) => {
+            acc[kolom] = karyawanArray[index].trim().replace(/"/g, ''); // Menghilangkan spasi dan tanda kutip ganda
+            return acc;
+        }, {})
+
+        res.json({ status: 200, karyawan })
+    } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error get user detail' + error.message)
+
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
 router.put('/password/:userId', async (req, res) => {
     try {
         const userId = req.params.userId
@@ -82,7 +189,7 @@ router.put('/password/:userId', async (req, res) => {
             res.json({ status: 200, message: 'password changed successfully' })
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error changing user password')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error changing user password' + error.message)
 
         res.status(500)
         res.json({
@@ -219,7 +326,7 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
             })
         }
         
-        await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update data')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update data' + error.message)
 
         res.status(500)
         res.json({
@@ -241,7 +348,7 @@ router.get('/logs/:userId', async (req, res) => {
             logs,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user logs')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user logs' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -262,7 +369,7 @@ router.get('/histories/:userId', async (req, res) => {
             histories,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user histories')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user histories' + error.message)
         res.status(500)
         res.json({
             status: 500,
