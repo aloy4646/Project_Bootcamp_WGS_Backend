@@ -51,7 +51,7 @@ const addSertifikat = async (userId, sertifikat) => {
 const getUserSertifikat = async (userId) => {
     try {
         const result = await db.query(
-            'SELECT * FROM sertifikat WHERE "idUser" = $1 ORDER BY tanggal_terbit DESC',
+            'SELECT id, "idUser", nama, organisasi_penerbit, tanggal_terbit, tanggal_expired FROM sertifikat WHERE "idUser" = $1 ORDER BY tanggal_terbit DESC',
             [userId]
         )
 
