@@ -181,13 +181,24 @@ router.get('/dokumen/:userId', async (req, res) => {
 router.put('/password/:userId', async (req, res) => {
     try {
         const userId = req.params.userId
-        const { message, password } = req.body
+        const { old_password, new_password } = req.body
 
-        bcrypt.hash(password, 10).then(async (hash) => {
-            await users_controller.updateUserPassword(userId, hash, message)
+        const message = "Update password"
 
-            res.json({ status: 200, message: 'password changed successfully' })
-        })
+        const user = await users_controller.findUserById(userId)
+
+        const match = await bcrypt.compare(old_password, user.password)
+        if (!match) {
+            return res.status(404).json({
+                status: 404,
+                error: 'wrong old password',
+            })
+        }
+
+        const hash = await bcrypt.hash(new_password, 10)
+        await users_controller.updateUserPassword(userId, hash, message)
+
+        return res.json({ status: 200, message: 'password changed successfully' })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error changing user password' + error.message)
 
@@ -204,26 +215,23 @@ router.post('/login', async (req, res) => {
     try {
         const { email_kantor, password } = req.body
 
-        const user = await users_controller.findUser(email_kantor)
+        const user = await users_controller.findUserByEmailKantor(email_kantor)
 
         if (!user) {
             res.status(404)
-            res.json({ status: 404, error: 'user does not exist' })
+            res.json({ status: 404, error: 'wrong email kantor or password' })
             return
         }
 
-        bcrypt.compare(password, user.password).then((match) => {
-            if (!match) {
-                res.status(404)
-                res.json({
-                    status: 404,
-                    error: 'wrong email and password combination',
-                })
-                return
-            }
+        const match = await bcrypt.compare(password, user.password)
+        if (!match) {
+            return res.status(404).json({
+                status: 404,
+                error: 'wrong email kantor or password',
+            })
+        }
 
-            res.json({ status: 200, message: 'login success' })
-        })
+        res.json({ status: 200, message: 'login success' })
     } catch (error) {
         res.status(500)
         res.json({

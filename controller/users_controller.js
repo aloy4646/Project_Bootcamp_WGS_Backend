@@ -48,7 +48,7 @@ const updateUserPassword = async (userId, password, message) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                message: `password updated for user: ${userId}.`,
+                message: `password updated for user: ${userId}`,
             }),
         ]
         const newHistory = [
@@ -72,7 +72,7 @@ const updateUserPassword = async (userId, password, message) => {
     }
 }
 
-const findUser = async (email_kantor) => {
+const findUserByEmailKantor = async (email_kantor) => {
     try {
         const result = await db.query('SELECT * FROM users WHERE email_kantor = $1', [
             email_kantor,
@@ -86,6 +86,22 @@ const findUser = async (email_kantor) => {
         throw error
     }
 }
+
+const findUserById = async (userId) => {
+    try {
+        const result = await db.query('SELECT * FROM users WHERE id = $1', [
+            userId,
+        ])
+        if (result.rows.length === 0) {
+            return null
+        }
+        return result.rows[0]
+    } catch (error) {
+        console.error('Error finding contact:', error)
+        throw error
+    }
+}
+
 
 const updateUserRequest = async (userId, message, oldData, newData) => {
     try {
@@ -189,7 +205,8 @@ module.exports = {
     getUserDetail,
     createUser,
     updateUserPassword,
-    findUser,
+    findUserByEmailKantor,
+    findUserById,
     updateUserRequest,
     getUserData,
     getUserLogs,
