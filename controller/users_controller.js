@@ -2,7 +2,7 @@ const db = require('../db.js')
 
 const getUsers = async () => {
     try {
-        const result = await db.query('SELECT id, email_kantor, nama_lengkap, nama_panggilan FROM users ORDER BY nama_lengkap ASC')
+        const result = await db.query("SELECT id, email_kantor, nama_lengkap, nama_panggilan FROM users WHERE role != 'SUPER ADMIN' ORDER BY nama_lengkap ASC")
         return result.rows
     } catch (error) {
         console.error('Error getting list contacts:', error)

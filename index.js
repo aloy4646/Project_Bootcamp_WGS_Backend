@@ -1,6 +1,8 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require("cors")
+const session = require('express-session')
+require('dotenv').config()
 
 const bodyParser = require('body-parser')
 
@@ -8,6 +10,15 @@ const app = express()
 
 app.use(express.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        secure: 'auto',
+    }
+}))
 
 app.use(cors({
     credentials: true,
@@ -23,6 +34,7 @@ app.use("/users", routes.usersRouter)
 app.use("/users/documents", routes.documentsRouter)
 app.use("/admin", routes.adminRouter)
 app.use("/file", routes.fileDownloadRouter)
+app.use("/auth", routes.authRouter)
 
 
 app.use('/', (req, res) => {

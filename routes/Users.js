@@ -5,18 +5,19 @@ const { users_controller, error_log_controller } = require('../controller/index'
 const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
 const fs = require('fs')
+const { verifyUser, adminOnly } = require('../middleware/AuthUser')
 
 //create user
-router.post('/', async (req, res) => {
+router.post('/', verifyUser, adminOnly, async (req, res) => {
     try {
         const { email_kantor, idAdmin } = req.body
 
         const user = await users_controller.findUserByEmailKantor(email_kantor)
 
         if(user){
-            return res.status(404).json({
-                status: 404,
-                error: 'email already exist',
+            return res.status(400).json({
+                status: 400,
+                error: 'Email sudah ada, silahkan gunakan email lain',
             })
         }
 
@@ -47,7 +48,7 @@ router.post('/', async (req, res) => {
 })
 
 //get list users
-router.get('/', async (req, res) => {
+router.get('/', verifyUser, adminOnly, async (req, res) => {
     try {
         const listKaryawan = await users_controller.getUsers()
 
@@ -63,7 +64,7 @@ router.get('/', async (req, res) => {
 })
 
 //get user detail
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
         const karyawan = await users_controller.getUserDetail(userId)
@@ -83,7 +84,7 @@ router.get('/:userId', async (req, res) => {
 
 
 //get user data (data text dan image)
-router.get('/data/:userId', async (req, res) => {
+router.get('/data/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
         var arrayKolom = [
@@ -141,7 +142,7 @@ router.get('/data/:userId', async (req, res) => {
 })
 
 //get user dokumen (data pdf)
-router.get('/dokumen/:userId', async (req, res) => {
+router.get('/dokumen/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
         var arrayKolom = [
@@ -188,7 +189,7 @@ router.get('/dokumen/:userId', async (req, res) => {
     }
 })
 
-router.put('/password/:userId', async (req, res) => {
+router.put('/password/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
         const { old_password, new_password } = req.body
@@ -199,8 +200,8 @@ router.put('/password/:userId', async (req, res) => {
 
         const match = await bcrypt.compare(old_password, user.password)
         if (!match) {
-            return res.status(404).json({
-                status: 404,
+            return res.status(400).json({
+                status: 400,
                 error: 'wrong old password',
             })
         }
@@ -221,39 +222,8 @@ router.put('/password/:userId', async (req, res) => {
     }
 })
 
-router.post('/login', async (req, res) => {
-    try {
-        const { email_kantor, password } = req.body
-
-        const user = await users_controller.findUserByEmailKantor(email_kantor)
-
-        if (!user) {
-            res.status(404)
-            res.json({ status: 404, error: 'wrong email kantor or password' })
-            return
-        }
-
-        const match = await bcrypt.compare(password, user.password)
-        if (!match) {
-            return res.status(404).json({
-                status: 404,
-                error: 'wrong email kantor or password',
-            })
-        }
-
-        res.json({ status: 200, message: 'login success' })
-    } catch (error) {
-        res.status(500)
-        res.json({
-            status: 500,
-            message: 'Internal Server Error',
-            error: error,
-        })
-    }
-})
-
 //update request from user (data pribadi, data kerabat dan informasi tambahan)
-router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
+router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res) => {
     try {
         const userId = req.params.userId
         const message = req.body.message
@@ -355,7 +325,7 @@ router.put('/:userId', imageUploads.single('foto'), async (req, res) => {
     }
 })
 
-router.get('/logs/:userId', async (req, res) => {
+router.get('/logs/:userId', verifyUser, adminOnly, async (req, res) => {
     try {
         const userId = req.params.userId
         const logs = await users_controller.getUserLogs(userId)
@@ -376,7 +346,7 @@ router.get('/logs/:userId', async (req, res) => {
     }
 })
 
-router.get('/histories/:userId', async (req, res) => {
+router.get('/histories/:userId', verifyUser, adminOnly, async (req, res) => {
     try {
         const userId = req.params.userId
         const histories = await users_controller.getUserHistories(userId)

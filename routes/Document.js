@@ -3,15 +3,13 @@ const router = express.Router()
 const fs = require('fs')
 // const mime = require('mime-types')
 const { pdfUploads, sertifikatUploads } = require('../storage/storage')
-const {
-    users_controller,
-    sertifikat_controller,
-    error_log_controller,
-} = require('../controller/index')
+const {users_controller, sertifikat_controller, error_log_controller } = require('../controller/index')
+const { verifyUser } = require('../middleware/AuthUser')
 
 // update request from user (dokumen)
 router.put(
     '/:userId',
+    verifyUser,
     pdfUploads.fields([
         { name: 'ktp', maxCount: 1 },
         { name: 'npwp', maxCount: 1 },
@@ -117,7 +115,7 @@ router.put(
 )
 
 // get user sertifikat list
-router.get('/sertifikat/:userId', async (req, res) => {
+router.get('/sertifikat/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
 
@@ -142,7 +140,7 @@ router.get('/sertifikat/:userId', async (req, res) => {
 })
 
 //get user sertifikat detail
-router.get('/sertifikat/:userId/:sertifikatId', async (req, res) => {
+router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
         const sertifikatId = req.params.sertifikatId
@@ -171,6 +169,7 @@ router.get('/sertifikat/:userId/:sertifikatId', async (req, res) => {
 // Add sertifikat
 router.post(
     '/sertifikat',
+    verifyUser,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
@@ -231,6 +230,7 @@ router.post(
 //Update sertifikat
 router.put(
     '/sertifikat/:sertifikatId',
+    verifyUser,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
@@ -310,7 +310,7 @@ router.put(
 )
 
 
-router.put('/sertifikat/:sertifikatId/delete', async (req, res) => {
+router.put('/sertifikat/:sertifikatId/delete', verifyUser, async (req, res) => {
     try {
         const sertifikatId = req.params.sertifikatId
         const userId = req.body.userId

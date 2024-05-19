@@ -1,10 +1,10 @@
 const express = require('express')
 const router = express.Router()
 const { admin_controller } = require('../controller/index')
-
+const { verifyUser, adminOnly } = require('../middleware/AuthUser')
 
 // accept update request from user
-router.put('/update-request/accept/:update_requestId', async (req, res) => {
+router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const idAdmin = req.body.idAdmin
@@ -48,7 +48,7 @@ router.put('/update-request/accept/:update_requestId', async (req, res) => {
 })
 
 //reject update request from user
-router.put('/update-request/reject/:update_requestId', async (req, res) => {
+router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const { idAdmin, alasan } = req.body
@@ -83,7 +83,7 @@ router.put('/update-request/reject/:update_requestId', async (req, res) => {
 })
 
 //get list update request yang belum di-accept
-router.get('/update-request', async (req, res) => {
+router.get('/update-request', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requests = await admin_controller.getUpdateRequests()
 
@@ -99,7 +99,7 @@ router.get('/update-request', async (req, res) => {
 })
 
 //get update-request detail
-router.get('/update-request/:update_requestId', async (req, res) => {
+router.get('/update-request/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const update_request = await admin_controller.getUpdateRequest(update_requestId)
