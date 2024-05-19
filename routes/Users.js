@@ -6,9 +6,19 @@ const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
 const fs = require('fs')
 
+//create user
 router.post('/', async (req, res) => {
     try {
         const { email_kantor, idAdmin } = req.body
+
+        const user = await users_controller.findUserByEmailKantor(email_kantor)
+
+        if(user){
+            return res.status(404).json({
+                status: 404,
+                error: 'email already exist',
+            })
+        }
 
         const password = generateRandomString(6, 10)
 
