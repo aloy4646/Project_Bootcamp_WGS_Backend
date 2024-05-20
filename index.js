@@ -35,7 +35,7 @@ app.use("/users/documents", routes.documentsRouter)
 app.use("/admin", routes.adminRouter)
 app.use("/file", routes.fileDownloadRouter)
 app.use("/auth", routes.authRouter)
-
+app.use("/superadmin", routes.superAdminRouter)
 
 app.use('/', (req, res) => {
     res.status(404)

@@ -12,11 +12,12 @@ const getUpdateRequests = async () => {
 
         return null
     } catch (error) {
-        console.error('Error getting list update requests:', error)
+        console.error('Error saat mengambil list update request: ', error)
         throw error
     }
 }
 
+//get detail dari update request
 const getUpdateRequest = async (update_requestId) => {
     try {
         const result = await db.query(
@@ -28,7 +29,7 @@ const getUpdateRequest = async (update_requestId) => {
         }
         return result.rows[0]
     } catch (error) {
-        console.error('Error getting update request:', error)
+        console.error('Error saat mengambil detail dari update request: ', error)
         throw error
     }
 }
@@ -39,7 +40,7 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `update request with update_request_id: ${update_request.id} accepted`,
+                message: `Request update dengan update_request_id: ${update_request.id} diterima`,
             }),
         ]
 
@@ -47,7 +48,7 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `accepting update request with update_request_id: ${update_request.id} and userId: ${update_request.idUser}`,
+                message: `Menerima request update dengan update_request_id: ${update_request.id} dan userId: ${update_request.idUser}`,
             }),
         ]
 
@@ -91,23 +92,18 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
 
         return null
     } catch (error) {
-        console.error('Error accepting update request:', error)
+        console.log('Error saat menyetujui update request: ', error)
         throw error
     }
 }
 
-const rejectUpdateRequest = async (
-    update_requestId,
-    idAdmin,
-    userId,
-    alasan
-) => {
+const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) => {
     try {
         const newUserLog = [
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `update request with update_request_id: ${update_requestId} rejected, reason: ${alasan}`,
+                message: `Request update dengan update_request_id: ${update_requestId} ditolak, alasan: ${alasan}`,
             }),
         ]
 
@@ -115,7 +111,7 @@ const rejectUpdateRequest = async (
             JSON.stringify({
                 date: new Date(),
                 author: idAdmin,
-                message: `rejecting update request with update_request_id: ${update_requestId} and userId: ${userId}, reason: ${alasan}`,
+                message: `Menolak request update dengan update_request_id: ${update_requestId} dan userId: ${userId}, reason: ${alasan}`,
             }),
         ]
 
@@ -149,7 +145,7 @@ const rejectUpdateRequest = async (
 
         return null
     } catch (error) {
-        console.error('Error rejecting update request:', error)
+        console.error('Error menolak update request: ', error)
         throw error
     }
 }

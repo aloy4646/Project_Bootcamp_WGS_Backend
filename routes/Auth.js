@@ -1,9 +1,9 @@
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const { users_controller, error_log_controller } = require('../controller/index')
+const { users_controller } = require('../controller/index')
 
-//login
+//Log In
 router.post('/login', async (req, res) => {
     try {
         const { email_kantor, password } = req.body
@@ -29,7 +29,7 @@ router.post('/login', async (req, res) => {
         const id = user.id
         const role = user.role
 
-        res.json({ status: 200, message: 'login success', data: {id, email_kantor, role}})
+        res.json({ status: 200, message: 'Login berhasil', data: {id, email_kantor, role}})
     } catch (error) {
         res.status(500)
         res.json({
@@ -40,7 +40,7 @@ router.post('/login', async (req, res) => {
     }
 })
 
-//logout
+//Log Out
 router.delete('/logout', async (req, res) => {
     try {
         req.session.destroy((error) => {
@@ -51,8 +51,6 @@ router.delete('/logout', async (req, res) => {
             }
         })
     } catch (error) {
-        // await error_log_controller.addErrorLog(req.params.userId, 'Error logout: ' + error.message)
-
         res.status(500)
         res.json({
             status: 500,
@@ -62,7 +60,7 @@ router.delete('/logout', async (req, res) => {
     }
 })
 
-
+//Check Session
 router.get('/check', async (req, res) => {
     try {
         if(!req.session.userId){
@@ -76,7 +74,7 @@ router.get('/check', async (req, res) => {
 
         if (!user) {
             res.status(404)
-            res.json({ status: 404, error: 'user not found' })
+            res.json({ status: 404, error: 'User tidak ditemukan' })
             return
         }
 
@@ -84,7 +82,7 @@ router.get('/check', async (req, res) => {
         const email_kantor = user.email_kantor
         const role = user.role
 
-        res.json({ status: 200, message: 'User ditemukan', data: {id, email_kantor, role}})
+        res.json({ status: 200, message: 'User berhasil ditemukan', data: {id, email_kantor, role}})
 
     } catch (error) {
         res.status(500)

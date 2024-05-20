@@ -18,7 +18,7 @@ const addSertifikat = async (userId, sertifikat) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                message: `add sertifikat: ${sertifikat.nama}`,
+                message: `Menambah sertifikat: ${sertifikat.nama}`,
             }),
         ]
 
@@ -43,11 +43,12 @@ const addSertifikat = async (userId, sertifikat) => {
 
         return null
     } catch (error) {
-        console.error('Error adding sertifikat:', error)
+        console.error('Error saat menambahkan sertifikat: ', error)
         throw error
     }
 }
 
+//get list sertifikat dari user
 const getUserSertifikat = async (userId) => {
     try {
         const result = await db.query(
@@ -66,7 +67,7 @@ const getUserSertifikat = async (userId) => {
             return null
         }
     } catch (error) {
-        console.error('Error getting user sertifikat:', error)
+        console.error('Error saat mengambil list sertifikat user: ', error)
         throw error
     }
 }
@@ -84,7 +85,7 @@ const getDetailSertifikat = async (userId, sertifikatId) => {
             return null
         }
     } catch (error) {
-        console.error('Error getting user sertifikat detail:', error)
+        console.error('Error saat mengambil detail dari sertifikat user: ', error)
         throw error
     }
 }
@@ -95,7 +96,7 @@ const deleteSertifikat = async (userId, sertifikatId) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                message: 'updating sertifikat',
+                message: 'Menghapus sertifikat',
             }),
         ]
 
@@ -114,7 +115,7 @@ const deleteSertifikat = async (userId, sertifikatId) => {
 
         return result
     } catch (error) {
-        console.error('Error deleting sertifikat:', error)
+        console.error('Error saat menghapus sertifikat: ', error)
         throw error
     }
 }
@@ -125,7 +126,7 @@ const updateSertifikat = async (userId, sertifikatId, stringQuery) => {
             JSON.stringify({
                 date: new Date(),
                 author: userId,
-                message: 'updating sertifikat',
+                message: 'Mengubah sertifikat',
             }),
         ]
 
@@ -145,7 +146,18 @@ const updateSertifikat = async (userId, sertifikatId, stringQuery) => {
 
         return result
     } catch (error) {
-        console.error('Error updating sertifikat:', error)
+        console.error('Error saat mengubah sertifikat: ', error)
+        throw error
+    }
+}
+
+
+const getSertifikatBySertifikatId = async (sertifikatId) => {
+    try {
+        const result = await db.query('SELECT * FROM sertifikat WHERE id = $1', [sertifikatId])
+        return result.rows[0]
+    } catch (error) {
+        console.error('Error saat mengambil sertifikat dengan sertifikatId: ', error)
         throw error
     }
 }
@@ -156,4 +168,5 @@ module.exports = {
     getDetailSertifikat,
     deleteSertifikat,
     updateSertifikat,
+    getSertifikatBySertifikatId,
 }

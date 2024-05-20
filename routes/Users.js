@@ -5,10 +5,10 @@ const { users_controller, error_log_controller } = require('../controller/index'
 const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
 const fs = require('fs')
-const { verifyUser, adminOnly } = require('../middleware/AuthUser')
+const { verifyUser, superAdminOrAdminOnly, adminOrAuditorOnly } = require('../middleware/AuthUser')
 
 //create user
-router.post('/', verifyUser, adminOnly, async (req, res) => {
+router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
     try {
         const { email_kantor, idAdmin } = req.body
 
@@ -31,12 +31,12 @@ router.post('/', verifyUser, adminOnly, async (req, res) => {
 
             res.json({
                 status: 200,
-                message: 'registration success',
+                message: 'Proses penambahan user berhasil',
                 data: { email_kantor, password },
             })
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error registing user')
+        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error saat menambah user')
 
         res.status(500)
         res.json({
@@ -47,10 +47,16 @@ router.post('/', verifyUser, adminOnly, async (req, res) => {
     }
 })
 
-//get list users
-router.get('/', verifyUser, adminOnly, async (req, res) => {
+//Get list users
+router.get('/', verifyUser, async (req, res) => {
     try {
         const listKaryawan = await users_controller.getUsers()
+
+        if(req.role === 'USER') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
 
         res.json({ status: 200, listKaryawan })
     } catch (error) {
@@ -63,15 +69,21 @@ router.get('/', verifyUser, adminOnly, async (req, res) => {
     }
 })
 
-//get user detail
+//get user detail (seluruh data)
 router.get('/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
         const karyawan = await users_controller.getUserDetail(userId)
 
+        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
+
         res.json({ status: 200, karyawan })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error get user detail')
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil seluruh detail user')
 
         res.status(500)
         res.json({
@@ -87,6 +99,13 @@ router.get('/:userId', verifyUser, async (req, res) => {
 router.get('/data/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
+
+        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
+
         var arrayKolom = [
             'email_kantor',
             'nama_lengkap',
@@ -130,7 +149,7 @@ router.get('/data/:userId', verifyUser, async (req, res) => {
 
         res.json({ status: 200, karyawan })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error get user detail' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil user data (text dan image): ' + error.message)
 
         res.status(500)
         res.json({
@@ -145,6 +164,13 @@ router.get('/data/:userId', verifyUser, async (req, res) => {
 router.get('/dokumen/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
+
+        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
+
         var arrayKolom = [
             'ktp',
             'npwp',
@@ -178,7 +204,7 @@ router.get('/dokumen/:userId', verifyUser, async (req, res) => {
 
         res.json({ status: 200, karyawan })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error get user detail' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil user data (dokumen pdf): ' + error.message)
 
         res.status(500)
         res.json({
@@ -189,9 +215,15 @@ router.get('/dokumen/:userId', verifyUser, async (req, res) => {
     }
 })
 
+//Update Password
 router.put('/password/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
+        if(userId != req.userId){
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
         const { old_password, new_password } = req.body
 
         const message = "Update password"
@@ -202,16 +234,20 @@ router.put('/password/:userId', verifyUser, async (req, res) => {
         if (!match) {
             return res.status(400).json({
                 status: 400,
-                error: 'wrong old password',
+                error: 'Password lama salah',
             })
         }
 
         const hash = await bcrypt.hash(new_password, 10)
-        await users_controller.updateUserPassword(userId, hash, message)
+        const result = await users_controller.updateUserPassword(userId, hash, message)
 
-        return res.json({ status: 200, message: 'password changed successfully' })
+        if (!result) {
+            throw new Error('Error saat megnubah password')
+        }
+
+        return res.json({ status: 200, message: 'Password berhasil diubah' })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error changing user password' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengubah password: ' + error.message)
 
         res.status(500)
         res.json({
@@ -222,11 +258,17 @@ router.put('/password/:userId', verifyUser, async (req, res) => {
     }
 })
 
-//update request from user (data pribadi, data kerabat dan informasi tambahan)
+//Request Update User Data (data text dan image)
 router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res) => {
     try {
         const userId = req.params.userId
         const message = req.body.message
+
+        if(userId != req.userId && req.role !== 'ADMIN') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
 
         var arrayKolom = []
         var arrayValue = []
@@ -288,7 +330,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
             newDataJSON[kolom] = arrayValue[index]
         })
 
-        const result = await users_controller.updateUserRequest(
+        const result = await users_controller.requestUpdate(
             userId,
             message,
             oldDataJSON,
@@ -296,10 +338,10 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
         )
 
         if (!result) {
-            throw new Error('Error updating user document')
+            throw new Error('Error saat request update data user')
         }
 
-        res.json({ status: 200, message: 'update request stored' })
+        res.json({ status: 200, message: 'Request update berhasil tersimpan, silahkan tunggu konfirmasi dari admin' })
     } catch (error) {
         if (req.file && req.file.path) {
             const fotoPath = req.file.path
@@ -314,7 +356,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
             })
         }
         
-        await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update data' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat request update data user: ' + error.message)
 
         res.status(500)
         res.json({
@@ -325,7 +367,8 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
     }
 })
 
-router.get('/logs/:userId', verifyUser, adminOnly, async (req, res) => {
+//Get user logs
+router.get('/logs/:userId', verifyUser, adminOrAuditorOnly, async (req, res) => {
     try {
         const userId = req.params.userId
         const logs = await users_controller.getUserLogs(userId)
@@ -336,7 +379,7 @@ router.get('/logs/:userId', verifyUser, adminOnly, async (req, res) => {
             logs,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user logs' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil logs user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -346,7 +389,8 @@ router.get('/logs/:userId', verifyUser, adminOnly, async (req, res) => {
     }
 })
 
-router.get('/histories/:userId', verifyUser, adminOnly, async (req, res) => {
+//Get user histories
+router.get('/histories/:userId', verifyUser, adminOrAuditorOnly, async (req, res) => {
     try {
         const userId = req.params.userId
         const histories = await users_controller.getUserHistories(userId)
@@ -357,7 +401,7 @@ router.get('/histories/:userId', verifyUser, adminOnly, async (req, res) => {
             histories,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user histories' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil histories user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,

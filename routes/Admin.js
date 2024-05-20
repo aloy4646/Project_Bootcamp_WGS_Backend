@@ -1,17 +1,21 @@
 const express = require('express')
 const router = express.Router()
-const { admin_controller } = require('../controller/index')
+const { users_controller, update_controller, error_log_controller } = require('../controller/index')
 const { verifyUser, adminOnly } = require('../middleware/AuthUser')
+const { generateRandomString } = require('../password_generator/generator')
+const bcrypt = require('bcrypt')
 
-// accept update request from user
+// Accept update request from user
 router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const idAdmin = req.body.idAdmin
 
-        const update_request = await admin_controller.getUpdateRequest(
+        const update_request = await update_controller.getUpdateRequest(
             update_requestId
         )
+
+        console.log({update_request});
 
         const arrayNamaKolom = Object.keys(update_request.new)
         const arrayValue = Object.values(update_request.new)
@@ -22,7 +26,7 @@ router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, as
             })
             .join(', ')
 
-        const acceptResult = await admin_controller.acceptUpdateRequest(
+        const acceptResult = await update_controller.acceptUpdateRequest(
             update_request,
             idAdmin,
             stringQuery,
@@ -30,14 +34,15 @@ router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, as
         )
 
         if (!acceptResult) {
-            throw new Error('Error accepting user update request')
+            throw new Error('Error saat menerima request update')
         }
 
         res.json({
             status: 200,
-            message: `update request ${update_requestId} accepted`,
+            message: `Request update ${update_requestId} berhasil diterima`,
         })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error saat accept update document user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -47,17 +52,17 @@ router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, as
     }
 })
 
-//reject update request from user
+//Reject update request from user
 router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
         const { idAdmin, alasan } = req.body
 
-        const update_request = await admin_controller.getUpdateRequest(
+        const update_request = await update_controller.getUpdateRequest(
             update_requestId
         )
 
-        const rejectResult = await admin_controller.rejectUpdateRequest(
+        const rejectResult = await update_controller.rejectUpdateRequest(
             update_requestId,
             idAdmin,
             update_request.idUser,
@@ -65,14 +70,17 @@ router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, as
         )
 
         if (!rejectResult) {
-            throw new Error('Error accepting user update request')
+            throw new Error('Error saat menolak request update')
         }
 
         res.json({
             status: 200,
-            message: `update request ${update_requestId} rejected`,
+            message: `Request update ${update_requestId} berhasil ditolak`,
         })
     } catch (error) {
+
+        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error saat request update document user: ' + error.message)
+        
         res.status(500)
         res.json({
             status: 500,
@@ -82,10 +90,10 @@ router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, as
     }
 })
 
-//get list update request yang belum di-accept
+//Get list update request yang belum di-accept
 router.get('/update-request', verifyUser, adminOnly, async (req, res) => {
     try {
-        const update_requests = await admin_controller.getUpdateRequests()
+        const update_requests = await update_controller.getUpdateRequests()
 
         res.json({ status: 200, update_requests })
     } catch (error) {
@@ -102,10 +110,43 @@ router.get('/update-request', verifyUser, adminOnly, async (req, res) => {
 router.get('/update-request/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
-        const update_request = await admin_controller.getUpdateRequest(update_requestId)
+        const update_request = await update_controller.getUpdateRequest(update_requestId)
 
         res.json({ status: 200, update_request })
     } catch (error) {
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
+//Update Password by admin
+router.put('/password/:userId', verifyUser, adminOnly, async (req, res) => {
+    try {
+        const userId = req.params.userId
+        const idAdmin = req.userId
+
+        const new_password = generateRandomString(6, 10)
+
+        const message = "Update password by admin"
+
+        const hash = await bcrypt.hash(new_password, 10)
+
+        const result = await users_controller.updateUserPasswordByAdmin(userId, idAdmin, hash, message)
+        console.log("masuk sini3");
+
+        if (!result) {
+            throw new Error('Error saat merubah password user by admin')
+        }
+
+        console.log("masuk sini 4");
+
+        return res.json({ status: 200, message: 'Password berhasil diubah oleh admin', data: {new_password} })
+    } catch (error) {
+        await error_log_controller.addErrorLog(req.userId, 'Error saat merubah password user by admin: ' + error.message)
         res.status(500)
         res.json({
             status: 500,

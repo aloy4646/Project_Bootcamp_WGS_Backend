@@ -1,12 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const fs = require('fs')
-// const mime = require('mime-types')
 const { pdfUploads, sertifikatUploads } = require('../storage/storage')
 const {users_controller, sertifikat_controller, error_log_controller } = require('../controller/index')
-const { verifyUser } = require('../middleware/AuthUser')
+const { verifyUser, userOnly } = require('../middleware/AuthUser')
 
-// update request from user (dokumen)
+// Request Update User Data (dokumen)
 router.put(
     '/:userId',
     verifyUser,
@@ -22,6 +21,14 @@ router.put(
         try {
             const userId = req.params.userId
             const message = req.body.message
+
+            console.log('asdojasjfas', { userId: userId, userIdReq: req.userId });
+
+            if(userId != req.userId && req.role !== 'ADMIN') {
+                res.status(403)
+                res.json({ status: 403, error: 'User tidak memiliki akses' })
+                return
+            }
 
             var arrayValue = []
             var arrayKolomDiisi = []
@@ -74,7 +81,7 @@ router.put(
                 newDataJSON[kolom] = arrayValue[index]
             })
 
-            const result = await users_controller.updateUserRequest(
+            const result = await users_controller.requestUpdate(
                 userId,
                 message,
                 oldDataJSON,
@@ -82,10 +89,10 @@ router.put(
             )
 
             if (!result) {
-                throw new Error('Error updating user document')
+                throw new Error('Error saat request update dokumen user')
             }
 
-            res.json({ status: 200, message: 'update request stored' })
+            res.json({ status: 200, message: 'Request update berhasil tersimpan, silahkan tunggu konfirmasi dari admin' })
         } catch (error) {
             //menghapus file jika terjadi kesalahan
             if (req.files) {
@@ -102,7 +109,7 @@ router.put(
                 })
             }
 
-            await error_log_controller.addErrorLog(req.params.userId, 'Error requesting update document: ' + error.message)
+            await error_log_controller.addErrorLog(req.params.userId, 'Error saat request update document user: ' + error.message)
 
             res.status(500)
             res.json({
@@ -114,22 +121,28 @@ router.put(
     }
 )
 
-// get user sertifikat list
+// Get list sertifikat user
 router.get('/sertifikat/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
+
+        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
 
         const listSertifikat = await sertifikat_controller.getUserSertifikat(
             userId
         )
 
         if (!listSertifikat) {
-            throw new Error('Error getting user sertifikat list')
+            throw new Error('Error saat mengabil list sertifikat user')
         }
 
         res.json({ status: 200, listSertifikat })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user certificate list' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil list sertifikat user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -145,18 +158,24 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
         const userId = req.params.userId
         const sertifikatId = req.params.sertifikatId
 
+        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
+
         const sertifikat = await sertifikat_controller.getDetailSertifikat(
             userId,
             sertifikatId
         )
 
         if (!sertifikat) {
-            throw new Error('Error getting user sertifikat list')
+            throw new Error('Error saat mengabil detail sertifikat user')
         }
 
         res.json({ status: 200, sertifikat })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error getting user certificate detail' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil detail sertifikat user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -170,10 +189,17 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
 router.post(
     '/sertifikat',
     verifyUser,
+    userOnly,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
             const userId = req.body.userId
+
+            if(userId != req.userId){
+                res.status(403)
+                res.json({ status: 403, error: 'User tidak memiliki akses' })
+                return
+            }
 
             var arrayKolom = []
             var arrayValue = []
@@ -211,12 +237,12 @@ router.post(
             )
 
             if (!result) {
-                throw new Error('Error adding sertifikat')
+                throw new Error('Error saat menambah sertifikat')
             }
 
-            res.json({ status: 200, message: 'sertifikat added' })
+            res.json({ status: 200, message: 'Sertifikat berhasil ditambahkan' })
         } catch (error) {
-            await error_log_controller.addErrorLog(req.body.userId, 'Error creating user certificate' + error.message)
+            await error_log_controller.addErrorLog(req.body.userId, 'Error saat menambah sertifikat: ' + error.message)
             res.status(500)
             res.json({
                 status: 500,
@@ -231,13 +257,18 @@ router.post(
 router.put(
     '/sertifikat/:sertifikatId',
     verifyUser,
+    userOnly,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
             const sertifikatId = req.params.sertifikatId
             const userId = req.body.userId
 
-            console.log({ userId: userId, sertifikatId: sertifikatId })
+            if(userId != req.userId){
+                res.status(403)
+                res.json({ status: 403, error: 'User tidak memiliki akses' })
+                return
+            }
 
             var arrayKolom = []
             var arrayValue = []
@@ -279,10 +310,10 @@ router.put(
             )
 
             if (!result) {
-                throw new Error('Error updating user document')
+                throw new Error('Error saat mengubah sertifikat user')
             }
 
-            res.json({ status: 200, message: 'update success' })
+            res.json({ status: 200, message: 'Sertifikat berhasil diubah' })
         } catch (error) {
             if (req.file && req.file.path) {
                 const fotoPath = req.file.path
@@ -297,7 +328,7 @@ router.put(
                 })
             }
 
-            await error_log_controller.addErrorLog(req.body.userId, 'Error creating user certificate' + error.message)
+            await error_log_controller.addErrorLog(req.body.userId, 'Error saat mengubah sertifikat user: ' + error.message)
 
             res.status(500)
             res.json({
@@ -309,21 +340,37 @@ router.put(
     }
 )
 
-
-router.put('/sertifikat/:sertifikatId/delete', verifyUser, async (req, res) => {
+//Delete sertifikat
+router.delete('/sertifikat/:sertifikatId', verifyUser, userOnly, async (req, res) => {
     try {
         const sertifikatId = req.params.sertifikatId
-        const userId = req.body.userId
+        const userId = req.userId
 
-        const result = await sertifikat_controller.deleteSertifikat(userId, sertifikatId)
+        const sertifikat = await sertifikat_controller.getSertifikatBySertifikatId(
+            sertifikatId
+        )
 
-        if (!result) {
-            throw new Error('Error deleting sertifikat')
+        if (!sertifikat) {
+            throw new Error('Error saat menghapus sertifikat')
         }
 
-        res.json({ status: 200, message: 'sertifikat deleted' })
+        console.log({ sertifikat });
+
+        // if(userId != req.userId){
+        //     res.status(403)
+        //     res.json({ status: 403, error: 'User tidak memiliki akses' })
+        //     return
+        // }
+
+        // const result = await sertifikat_controller.deleteSertifikat(userId, sertifikatId)
+
+        // if (!result) {
+        //     throw new Error('Error saat menghapus sertifikat')
+        // }
+
+        res.json({ status: 200, message: 'Sertifikat berhasil dihapus' })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.body.userId, 'Error deleting user certificate' + error.message)
+        await error_log_controller.addErrorLog(req.body.userId, 'Error saat menghapus sertifikat: ' + error.message)
         res.status(500)
             res.json({
                 status: 500,

@@ -2,8 +2,9 @@ const express = require('express')
 const router = express.Router()
 const fs = require('fs')
 const path = require('path')
+const { verifyUser } = require('../middleware/AuthUser')
 
-router.get('/', async (req, res) => {
+router.get('/', verifyUser, async (req, res) => {
     try {
         const filePath = decodeURIComponent(req.query.filePath)
 
