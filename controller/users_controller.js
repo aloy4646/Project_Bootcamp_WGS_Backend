@@ -319,6 +319,25 @@ const updateUserRole = async (userId, idSuperAdmin, role) => {
     }
 }
 
+const getUserRole = async (userId) => {
+    try {
+        var result = await db.query(
+            'SELECT role FROM users WHERE id = $1',
+            [userId]
+        )
+
+        if (result.rows.length > 0) {
+            console.log(result.rows[0]);
+            return result.rows[0].role
+        }else{
+            return null
+        }
+    } catch (error) {
+        console.error('Error saat mengubah role user: ', error)
+        throw error
+    }
+}
+
 module.exports = {
     getUsers,
     getUserDetail,
@@ -332,4 +351,5 @@ module.exports = {
     getUserLogs,
     getUserHistories,
     updateUserRole,
+    getUserRole,
 }
