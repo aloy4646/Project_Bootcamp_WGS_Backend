@@ -137,12 +137,12 @@ router.get('/sertifikat/:userId', verifyUser, async (req, res) => {
         )
 
         if (!listSertifikat) {
-            throw new Error('Error saat mengabil list sertifikat user')
+            throw new Error('Error saat mengambil list sertifikat user')
         }
 
         res.json({ status: 200, listSertifikat })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil list sertifikat user: ' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil list sertifikat user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -170,12 +170,12 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
         )
 
         if (!sertifikat) {
-            throw new Error('Error saat mengabil detail sertifikat user')
+            throw new Error('Error saat mengambil detail sertifikat user')
         }
 
         res.json({ status: 200, sertifikat })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil detail sertifikat user: ' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil detail sertifikat user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,

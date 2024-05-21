@@ -379,7 +379,7 @@ router.get('/logs/:userId', verifyUser, adminOrAuditorOnly, async (req, res) => 
             logs,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil logs user: ' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil logs user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -401,7 +401,7 @@ router.get('/histories/:userId', verifyUser, adminOrAuditorOnly, async (req, res
             histories,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengabil histories user: ' + error.message)
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil histories user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
