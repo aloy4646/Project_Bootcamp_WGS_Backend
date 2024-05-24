@@ -6,6 +6,12 @@ const { verifyUser } = require('../middleware/AuthUser')
 
 router.get('/', verifyUser, async (req, res) => {
     try {
+        if(req.role === 'SUPER ADMIN') {
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
+
         const filePath = decodeURIComponent(req.query.filePath)
 
         const absolutePath = path.resolve(filePath)

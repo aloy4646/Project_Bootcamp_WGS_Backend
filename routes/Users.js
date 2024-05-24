@@ -100,7 +100,7 @@ router.get('/data/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
 
-        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+        if(userId != req.userId && req.role !== 'ADMIN') {
             res.status(403)
             res.json({ status: 403, error: 'User tidak memiliki akses' })
             return
@@ -165,7 +165,7 @@ router.get('/dokumen/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
 
-        if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
+        if(userId != req.userId && req.role !== 'ADMIN') {
             res.status(403)
             res.json({ status: 403, error: 'User tidak memiliki akses' })
             return
