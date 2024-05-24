@@ -3,18 +3,19 @@ const router = express.Router()
 const fs = require('fs')
 const path = require('path')
 const { verifyUser } = require('../middleware/AuthUser')
+const { error_log_controller } = require('../controller/index')
 
 router.get('/', verifyUser, async (req, res) => {
     try {
-        if(req.role === 'SUPER ADMIN') {
-            res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+        if (req.role === 'SUPER ADMIN') {
+            res.status(403).json({ status: 403, error: 'User tidak memiliki akses' })
             return
         }
 
         const filePath = decodeURIComponent(req.query.filePath)
 
-        const absolutePath = path.resolve(filePath)
+        // Menggunakan path relatif dari direktori storage
+        const absolutePath = path.resolve(__dirname, '.', 'storage', filePath)
 
         if (fs.existsSync(absolutePath)) {
             res.sendFile(absolutePath)
@@ -25,6 +26,8 @@ router.get('/', verifyUser, async (req, res) => {
             })
         }
     } catch (error) {
+        await error_log_controller.addErrorLog(req.userId, 'Error saat mengambil file: ' + error.message)
+
         res.status(500)
         res.json({
             status: 500,

@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const fs = require('fs')
+const path = require('path')
 const { pdfUploads, sertifikatUploads } = require('../storage/storage')
 const {users_controller, sertifikat_controller, error_log_controller } = require('../controller/index')
 const { verifyUser, userOnly } = require('../middleware/AuthUser')
@@ -22,8 +23,6 @@ router.put(
             const userId = req.params.userId
             const message = req.body.message
 
-            console.log('asdojasjfas', { userId: userId, userIdReq: req.userId });
-
             if(userId != req.userId && req.role !== 'ADMIN') {
                 res.status(403)
                 res.json({ status: 403, error: 'User tidak memiliki akses' })
@@ -44,7 +43,11 @@ router.put(
 
             for (const field of listKolom) {
                 if (req.files && req.files[field]) {
-                    arrayValue.push(req.files[field][0].path)
+                    const relativePath = path.relative(
+                        path.join(__dirname, 'storage'),
+                        req.files[field][0].path
+                    )
+                    arrayValue.push(relativePath)
                     arrayKolomDiisi.push(field)
                 }
             }
@@ -222,7 +225,11 @@ router.post(
 
             //cek apakah ada file media pada request
             if (req.file && req.file.path) {
-                arrayValue.push(req.file.path)
+                const relativePath = path.relative(
+                    path.join(__dirname, 'storage'),
+                    req.file.path
+                )
+                arrayValue.push(relativePath)
                 arrayKolom.push('media')
             }
 
@@ -291,7 +298,11 @@ router.put(
 
             //cek apakah ada file media pada request
             if (req.file && req.file.path) {
-                arrayValue.push(req.file.path)
+                const relativePath = path.relative(
+                    path.join(__dirname, 'storage'),
+                    req.file.path
+                )
+                arrayValue.push(relativePath)
                 arrayKolom.push('media')
             }
 

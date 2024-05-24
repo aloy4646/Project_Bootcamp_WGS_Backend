@@ -40,7 +40,7 @@ router.get('/role/:userId', verifyUser, superAdminOnly, async (req, res) => {
 
         return res.json({ status: 200, message: 'Role berhasil diambil', data: {role: result} })
     } catch (error) {
-        // await error_log_controller.addErrorLog(req.userId, 'Error saat mengambil role user: ' + error.message)
+        await error_log_controller.addErrorLog(req.userId, 'Error saat mengambil role user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,

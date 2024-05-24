@@ -301,7 +301,11 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
 
         // Cek apakah ada field foto pada request
         if (req.file && req.file.path) {
-            arrayValue.push(req.file.path)
+            const relativePath = path.relative(
+                path.join(__dirname, 'storage'),
+                req.file.path
+            )
+            arrayValue.push(relativePath)
             arrayKolom.push('foto')
         }
 

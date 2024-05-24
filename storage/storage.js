@@ -31,19 +31,18 @@ function createUploadConfig(destinationFolder, allowedExtensions) {
 
     return upload
 }
-
 //konfigurasi upload untuk gambar
-const imageUploads = createUploadConfig('../public/imageUploads', [
+const imageUploads = createUploadConfig('imageUploads', [
     '.png',
     '.jpg',
     '.jpeg',
 ])
 
 //konfigurasi upload untuk PDF
-const pdfUploads = createUploadConfig('../public/pdfUploads', ['.pdf'])
+const pdfUploads = createUploadConfig('pdfUploads', ['.pdf'])
 
 //konfigurasi upload untuk Sertufikat
-const sertifikatUploads = createUploadConfig('../public/sertifikatUploads', [
+const sertifikatUploads = createUploadConfig('sertifikatUploads', [
     '.png',
     '.jpg',
     '.jpeg',
