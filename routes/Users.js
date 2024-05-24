@@ -5,6 +5,7 @@ const { users_controller, error_log_controller } = require('../controller/index'
 const { imageUploads } = require('../storage/storage')
 const { generateRandomString } = require('../password_generator/generator')
 const fs = require('fs')
+const path = require('path')
 const { verifyUser, superAdminOrAdminOnly, adminOrAuditorOnly } = require('../middleware/AuthUser')
 
 //create user

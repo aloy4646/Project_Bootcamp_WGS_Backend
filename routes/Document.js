@@ -365,19 +365,17 @@ router.delete('/sertifikat/:sertifikatId', verifyUser, userOnly, async (req, res
             throw new Error('Error saat menghapus sertifikat')
         }
 
-        console.log({ sertifikat });
+        if(sertifikat.idUser != req.userId){
+            res.status(403)
+            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            return
+        }
 
-        // if(userId != req.userId){
-        //     res.status(403)
-        //     res.json({ status: 403, error: 'User tidak memiliki akses' })
-        //     return
-        // }
+        const result = await sertifikat_controller.deleteSertifikat(userId, sertifikatId)
 
-        // const result = await sertifikat_controller.deleteSertifikat(userId, sertifikatId)
-
-        // if (!result) {
-        //     throw new Error('Error saat menghapus sertifikat')
-        // }
+        if (!result) {
+            throw new Error('Error saat menghapus sertifikat')
+        }
 
         res.json({ status: 200, message: 'Sertifikat berhasil dihapus' })
     } catch (error) {
