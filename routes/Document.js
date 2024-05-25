@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const { pdfUploads, sertifikatUploads } = require('../storage/storage')
 const {users_controller, sertifikat_controller, error_log_controller } = require('../controller/index')
-const { verifyUser, userOnly } = require('../middleware/AuthUser')
+const { verifyUser } = require('../middleware/AuthUser')
 
 // Request Update User Data (dokumen)
 router.put(
@@ -86,6 +86,7 @@ router.put(
 
             const result = await users_controller.requestUpdate(
                 userId,
+                req.userId,
                 message,
                 oldDataJSON,
                 newDataJSON
@@ -192,7 +193,6 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
 router.post(
     '/sertifikat',
     verifyUser,
-    userOnly,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
@@ -264,7 +264,6 @@ router.post(
 router.put(
     '/sertifikat/:sertifikatId',
     verifyUser,
-    userOnly,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
@@ -352,7 +351,7 @@ router.put(
 )
 
 //Delete sertifikat
-router.delete('/sertifikat/:sertifikatId', verifyUser, userOnly, async (req, res) => {
+router.delete('/sertifikat/:sertifikatId', verifyUser, async (req, res) => {
     try {
         const sertifikatId = req.params.sertifikatId
         const userId = req.userId

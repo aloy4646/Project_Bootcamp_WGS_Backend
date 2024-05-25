@@ -28,6 +28,7 @@ router.put('/role/:userId', verifyUser, superAdminOnly, async (req, res) => {
     }
 })
 
+//get user role
 router.get('/role/:userId', verifyUser, superAdminOnly, async (req, res) => {
     try {
         const userId = req.params.userId

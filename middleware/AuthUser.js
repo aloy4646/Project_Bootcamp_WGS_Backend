@@ -32,26 +32,6 @@ const verifyUser = async (req, res, next ) => {
 }
 
 //middleware untuk mengecek apakah role dari user adalah admin
-const userOnly = async (req, res, next ) => {
-    try {
-        if(req.role !== 'USER'){
-            res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
-            return
-        }
-
-        next()
-    } catch (error) {
-        res.status(500)
-        res.json({
-            status: 500,
-            message: 'Internal Server Error',
-            error: error,
-        })
-    }
-}
-
-//middleware untuk mengecek apakah role dari user adalah admin
 const adminOnly = async (req, res, next ) => {
     try {
         if(req.role !== 'ADMIN'){
@@ -133,7 +113,6 @@ const adminOrAuditorOnly = async (req, res, next ) => {
 
 module.exports = {
     verifyUser,
-    userOnly,
     adminOnly,
     superAdminOnly,
     superAdminOrAdminOnly,

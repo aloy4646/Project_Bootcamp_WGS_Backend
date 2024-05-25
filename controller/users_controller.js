@@ -116,7 +116,7 @@ const updateUserPasswordByAdmin = async (userId, idAdmin, password, message) => 
         const newHistory = [
             JSON.stringify({
                 date: new Date(),
-                author: userId,
+                author: idAdmin,
                 old: { password: 'secret' },
                 new: { password: 'secret' },
                 message: message,
@@ -179,27 +179,57 @@ const findUserById = async (userId) => {
 }
 
 //user melakukan request untuk update data (text maupun file berupa image dan pdf)
-const requestUpdate = async (userId, message, oldData, newData) => {
+const requestUpdate = async (userId, reqUser, message, oldData, newData) => {
     try {
-        const newLog = [
-            JSON.stringify({
-                date: new Date(),
-                author: userId,
-                message: `Melakukan request untuk update data karyawan`,
-            }),
-        ]
-
         var result = await db.query(
-            'INSERT INTO update_request ("idUser", message, old, new, date) VALUES ($1, $2, $3, $4, NOW())',
+            'INSERT INTO update_request ("idUser", message, old, new, date) VALUES ($1, $2, $3, $4, NOW()) RETURNING id',
             [userId, message, oldData, newData]
         )
 
+        var update_requestId = null
+        if (result.rows && result.rows[0].id) {
+            update_requestId = result.rows[0].id
+        }
+
+        //membut log
+        const newLog = [
+            JSON.stringify({
+                date: new Date(),
+                author: reqUser,
+                message: `Melakukan request untuk update data user dengan id: ${userId}. Update request id: ${update_requestId}`,
+            }),
+        ]
+
+        //membuat log untuk user jika pembuat request adalah admin
+        let newUserLog = null
+        if(userId != reqUser){
+            newUserLog = [
+                JSON.stringify({
+                    date: new Date(),
+                    author: reqUser,
+                    message: `Admin dengan id: ${reqUser} melakukan request untuk update data user dengan id: ${userId}. Update request id: ${update_requestId}`,
+                }),
+            ]
+        }
+
+        //menambah log dari pembuat request
         if (result.rowCount > 0) {
             result = null
             result = await db.query(
                 'UPDATE users SET logs = logs || $1 WHERE id = $2',
-                [newLog, userId]
+                [newLog, reqUser]
             )
+        }
+
+         //menambah log dari user yang di-update (jika pembuat request adalah admin)
+        if (result.rowCount > 0) {
+            if(userId != reqUser){
+                result = null
+                result = await db.query(
+                    'UPDATE users SET logs = logs || $1 WHERE id = $2',
+                    [newUserLog, userId]
+                )
+            }
         }
 
         return result

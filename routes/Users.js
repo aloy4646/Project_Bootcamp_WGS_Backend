@@ -51,7 +51,7 @@ router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
 //Get list users
 router.get('/', verifyUser, async (req, res) => {
     try {
-        const listKaryawan = await users_controller.getUsers()
+        const listUser = await users_controller.getUsers()
 
         if(req.role === 'USER') {
             res.status(403)
@@ -59,7 +59,7 @@ router.get('/', verifyUser, async (req, res) => {
             return
         }
 
-        res.json({ status: 200, listKaryawan })
+        res.json({ status: 200, listUser })
     } catch (error) {
         res.status(500)
         res.json({
@@ -74,7 +74,7 @@ router.get('/', verifyUser, async (req, res) => {
 router.get('/:userId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
-        const karyawan = await users_controller.getUserDetail(userId)
+        const user = await users_controller.getUserDetail(userId)
 
         if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
             res.status(403)
@@ -82,7 +82,7 @@ router.get('/:userId', verifyUser, async (req, res) => {
             return
         }
 
-        res.json({ status: 200, karyawan })
+        res.json({ status: 200, user })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil seluruh detail user')
 
@@ -127,28 +127,28 @@ router.get('/data/:userId', verifyUser, async (req, res) => {
             'foto',
         ]
 
-        const karyawanResult = await users_controller.getUserData(arrayKolom, userId)
-        let karyawanString = ''
-        if (karyawanResult && karyawanResult.startsWith('(') && karyawanResult.endsWith(')')) {
-            //Value dari karyawanResult adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-            karyawanString = karyawanResult.substring(1)
-            karyawanString = karyawanString.substring(
+        const userResult = await users_controller.getUserData(arrayKolom, userId)
+        let userString = ''
+        if (userResult && userResult.startsWith('(') && userResult.endsWith(')')) {
+            //Value dari userResult adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
+            userString = userResult.substring(1)
+            userString = userString.substring(
                 0,
-                karyawanString.length - 1
+                userString.length - 1
             )
         }else{
-            karyawanString = karyawanResult
+            userString = userResult
         }
 
-        const karyawanArray = karyawanString.split(',');
+        const userArray = userString.split(',');
 
-        // Menggabungkan arrayKolom dan fileArray menjadi objek karyawan
-        const karyawan = arrayKolom.reduce((acc, kolom, index) => {
-            acc[kolom] = karyawanArray[index].trim().replace(/"/g, ''); // Menghilangkan spasi dan tanda kutip ganda
+        // Menggabungkan arrayKolom dan fileArray menjadi objek user
+        const user = arrayKolom.reduce((acc, kolom, index) => {
+            acc[kolom] = userArray[index].trim().replace(/"/g, ''); // Menghilangkan spasi dan tanda kutip ganda
             return acc;
         }, {})
 
-        res.json({ status: 200, karyawan })
+        res.json({ status: 200, user })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil user data (text dan image): ' + error.message)
 
@@ -181,29 +181,29 @@ router.get('/dokumen/:userId', verifyUser, async (req, res) => {
             'cv_perusahaan',
         ]
 
-        const karyawanResult = await users_controller.getUserData(arrayKolom, userId)
+        const userResult = await users_controller.getUserData(arrayKolom, userId)
 
-        let karyawanString = ''
-        if (karyawanResult && karyawanResult.startsWith('(') && karyawanResult.endsWith(')')) {
-            //Value dari karyawanResult adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-            karyawanString = karyawanResult.substring(1)
-            karyawanString = karyawanString.substring(
+        let userString = ''
+        if (userResult && userResult.startsWith('(') && userResult.endsWith(')')) {
+            //Value dari userResult adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
+            userString = userResult.substring(1)
+            userString = userString.substring(
                 0,
-                karyawanString.length - 1
+                userString.length - 1
             )
         }else{
-            karyawanString = karyawanResult
+            userString = userResult
         }
 
-        const karyawanArray = karyawanString.split(',');
+        const userArray = userString.split(',');
 
-        // Menggabungkan arrayKolom dan fileArray menjadi objek karyawan
-        const karyawan = arrayKolom.reduce((acc, kolom, index) => {
-            acc[kolom] = karyawanArray[index].trim().replace(/"/g, ''); // Menghilangkan spasi dan tanda kutip ganda
+        // Menggabungkan arrayKolom dan fileArray menjadi objek user
+        const user = arrayKolom.reduce((acc, kolom, index) => {
+            acc[kolom] = userArray[index].trim().replace(/"/g, ''); // Menghilangkan spasi dan tanda kutip ganda
             return acc;
         }, {})
 
-        res.json({ status: 200, karyawan })
+        res.json({ status: 200, user })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil user data (dokumen pdf): ' + error.message)
 
@@ -337,6 +337,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
 
         const result = await users_controller.requestUpdate(
             userId,
+            req.userId,
             message,
             oldDataJSON,
             newDataJSON
