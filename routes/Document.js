@@ -29,6 +29,8 @@ router.put(
                 return
             }
 
+            const oldDataChanged = req.body.oldDataChanged
+
             var arrayValue = []
             var arrayKolomDiisi = []
 
@@ -52,33 +54,6 @@ router.put(
                 }
             }
 
-            var oldData = await users_controller.getUserData(
-                arrayKolomDiisi,
-                userId
-            )
-
-            let oldDataCleaned = ''
-            if (oldData && oldData.startsWith("(") && oldData.endsWith(")")) {
-                //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-                oldDataCleaned = oldData.substring(1)
-                oldDataCleaned = oldDataCleaned.substring(
-                    0,
-                    oldDataCleaned.length - 1
-                )
-            }else{
-                oldDataCleaned = oldData
-            }
-
-            console.log({oldDataCleaned});
-
-            // menggabungan nilai dari oldDataCleaned dan arrayKolom
-            // hasilnya menjadi seperti ini {"ktp": "...", "npwp": "...", dst}
-            const oldDataArray = oldDataCleaned.split(',')
-            const oldDataJSON = {}
-            arrayKolomDiisi.forEach((kolom, index) => {
-                oldDataJSON[kolom] = oldDataArray[index]
-            })
-
             const newDataJSON = {}
             arrayKolomDiisi.forEach((kolom, index) => {
                 newDataJSON[kolom] = arrayValue[index]
@@ -88,7 +63,7 @@ router.put(
                 userId,
                 req.userId,
                 message,
-                oldDataJSON,
+                oldDataChanged,
                 newDataJSON
             )
 
@@ -310,8 +285,6 @@ router.put(
                     return `${element} = '${arrayValue[index]}'`
                 })
                 .join(', ')
-
-            console.log({ stringQuery })
 
             const result = await sertifikat_controller.updateSertifikat(
                 userId,

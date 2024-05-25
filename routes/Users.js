@@ -271,6 +271,8 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
             return
         }
 
+        const oldDataChanged = req.body.oldDataChanged
+
         var arrayKolom = []
         var arrayValue = []
 
@@ -310,26 +312,6 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
             arrayKolom.push('foto')
         }
 
-        var oldData = await users_controller.getUserData(arrayKolom, userId)
-        let oldDataCleaned = ''
-        if (oldData && oldData.startsWith('(') && oldData.endsWith(')')) {
-            //Value dari oldData adalah '(,,,,,)'. kode dibawah digunakan untuk menghapus ( dan )
-            oldDataCleaned = oldData.substring(1)
-            oldDataCleaned = oldDataCleaned.substring(
-                0,
-                oldDataCleaned.length - 1
-            )
-        } else {
-            oldDataCleaned = oldData
-        }
-
-        // menggabungan nilai dari oldDataCleaned dan arrayKolom
-        const oldDataArray = oldDataCleaned.split(',')
-        const oldDataJSON = {}
-        arrayKolom.forEach((kolom, index) => {
-            oldDataJSON[kolom] = oldDataArray[index]
-        })
-
         const newDataJSON = {}
         arrayKolom.forEach((kolom, index) => {
             newDataJSON[kolom] = arrayValue[index]
@@ -339,7 +321,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
             userId,
             req.userId,
             message,
-            oldDataJSON,
+            oldDataChanged,
             newDataJSON
         )
 
