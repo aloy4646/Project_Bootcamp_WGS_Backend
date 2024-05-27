@@ -1,5 +1,7 @@
 const express = require('express')
 const router = express.Router()
+const fs = require('fs')
+const path = require('path')
 const { users_controller, update_controller, error_log_controller } = require('../controller/index')
 const { verifyUser, adminOnly } = require('../middleware/AuthUser')
 const { generateRandomString } = require('../password_generator/generator')
@@ -9,13 +11,11 @@ const bcrypt = require('bcrypt')
 router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
-        const idAdmin = req.body.idAdmin
+        const idAdmin = req.userId
 
         const update_request = await update_controller.getUpdateRequest(
             update_requestId
         )
-
-        console.log({update_request});
 
         const arrayNamaKolom = Object.keys(update_request.new)
         const arrayValue = Object.values(update_request.new)
@@ -42,7 +42,7 @@ router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, as
             message: `Request update ${update_requestId} berhasil diterima`,
         })
     } catch (error) {
-        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error saat accept update document user: ' + error.message)
+        await error_log_controller.addErrorLog(req.userId, 'Error saat accept update document user: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -56,7 +56,8 @@ router.put('/update-request/accept/:update_requestId', verifyUser, adminOnly, as
 router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, async (req, res) => {
     try {
         const update_requestId = req.params.update_requestId
-        const { idAdmin, alasan } = req.body
+        const alasan = req.body.alasan
+        const idAdmin = req.userId
 
         const update_request = await update_controller.getUpdateRequest(
             update_requestId
@@ -73,13 +74,30 @@ router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, as
             throw new Error('Error saat menolak request update')
         }
 
+        if(rejectResult.new){
+            for (const key in rejectResult.new) {
+                const value = rejectResult.new[key]
+                // Cek apakah nilai merupakan path yang valid
+                if (typeof value === 'string' && value.includes('\\')) {
+                    const mediaPath = path.resolve(__dirname, 'server', value)
+                    fs.unlink(mediaPath, (err) => {
+                        if (err) {
+                            console.error('Gagal menghapus file:', err)
+                            return
+                        }
+                        console.log('File berhasil dihapus:', mediaPath)
+                    })
+                }
+            }
+        }
+
         res.json({
             status: 200,
             message: `Request update ${update_requestId} berhasil ditolak`,
         })
     } catch (error) {
 
-        await error_log_controller.addErrorLog(req.body.idAdmin, 'Error saat request update document user: ' + error.message)
+        await error_log_controller.addErrorLog(req.userId, 'Error saat request update document user: ' + error.message)
         
         res.status(500)
         res.json({
@@ -97,6 +115,7 @@ router.get('/update-request', verifyUser, adminOnly, async (req, res) => {
 
         res.json({ status: 200, update_requests })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.userId, 'Error saat mengambil list request update: ' + error.message)
         res.status(500)
         res.json({
             status: 500,
@@ -114,6 +133,7 @@ router.get('/update-request/:update_requestId', verifyUser, adminOnly, async (re
 
         res.json({ status: 200, update_request })
     } catch (error) {
+        await error_log_controller.addErrorLog(req.userId, 'Error saat mengambil detail request update: ' + error.message)
         res.status(500)
         res.json({
             status: 500,

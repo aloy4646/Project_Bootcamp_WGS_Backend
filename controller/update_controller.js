@@ -115,11 +115,22 @@ const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) =>
             }),
         ]
 
-        //update log user
-        var result = await db.query(
-            `UPDATE users SET logs = logs || $1 WHERE id = $2`,
-            [newUserLog, userId]
+
+        //delete update request
+        var resultDelete = await db.query(
+            `DELETE FROM update_request WHERE id = $1 RETURNING *`,
+            [update_requestId]
         )
+
+        var result = null
+
+        //update log user
+        if (resultDelete.rowCount > 0) {
+            result = await db.query(
+                `UPDATE users SET logs = logs || $1 WHERE id = $2`,
+                [newUserLog, userId]
+            )
+        }
 
         //update log admin
         if (result.rowCount > 0) {
@@ -130,17 +141,8 @@ const rejectUpdateRequest = async (update_requestId, idAdmin, userId, alasan) =>
             )
         }
 
-        //delete update request
         if (result.rowCount > 0) {
-            result = null
-            result = await db.query(
-                `DELETE FROM update_request WHERE id = $1`,
-                [update_requestId]
-            )
-        }
-
-        if (result.rowCount > 0) {
-            return result
+            return resultDelete.rows[0]
         }
 
         return null

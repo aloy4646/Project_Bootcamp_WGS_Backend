@@ -11,7 +11,8 @@ const { verifyUser, superAdminOrAdminOnly, adminOrAuditorOnly } = require('../mi
 //create user
 router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
     try {
-        const { email_kantor, idAdmin } = req.body
+        const { email_kantor } = req.body
+        const idAdmin = req.userId
 
         const user = await users_controller.findUserByEmailKantor(email_kantor)
 
