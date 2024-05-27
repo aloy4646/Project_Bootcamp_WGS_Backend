@@ -349,6 +349,17 @@ router.delete('/sertifikat/:sertifikatId', verifyUser, async (req, res) => {
             throw new Error('Error saat menghapus sertifikat')
         }
 
+        if (sertifikat.media) {
+            const mediaPath = path.join(__dirname, 'storage', sertifikat.media)
+            fs.unlink(mediaPath, (err) => {
+                if (err) {
+                    console.error('Gagal menghapus file:', err)
+                    return
+                }
+                console.log('File berhasil dihapus:', mediaPath)
+            })
+        }
+
         res.json({ status: 200, message: 'Sertifikat berhasil dihapus' })
     } catch (error) {
         await error_log_controller.addErrorLog(req.body.userId, 'Error saat menghapus sertifikat: ' + error.message)
