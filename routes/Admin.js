@@ -77,7 +77,7 @@ router.put('/update-request/reject/:update_requestId', verifyUser, adminOnly, as
         if(rejectResult.new){
             for (const key in rejectResult.new) {
                 const value = rejectResult.new[key]
-                // Cek apakah nilai merupakan path yang valid
+                //mengecek apakah nilai merupakan path yang valid
                 if (typeof value === 'string' && value.includes('\\')) {
                     const mediaPath = path.resolve(__dirname, 'server', value)
                     fs.unlink(mediaPath, (err) => {

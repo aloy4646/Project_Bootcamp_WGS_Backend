@@ -196,7 +196,7 @@ const requestUpdate = async (userId, reqUser, message, oldData, newData) => {
             JSON.stringify({
                 date: new Date(),
                 author: reqUser,
-                message: `Melakukan request untuk update data user dengan id: ${userId}. Update request id: ${update_requestId}`,
+                message: `Melakukan request update data user untuk userId: ${userId}. Update request id: ${update_requestId}`,
             }),
         ]
 
@@ -207,7 +207,7 @@ const requestUpdate = async (userId, reqUser, message, oldData, newData) => {
                 JSON.stringify({
                     date: new Date(),
                     author: reqUser,
-                    message: `Admin dengan id: ${reqUser} melakukan request untuk update data user dengan id: ${userId}. Update request id: ${update_requestId}`,
+                    message: `Admin dengan id: ${reqUser} melakukan request update data user. Update request id: ${update_requestId}`,
                 }),
             ]
         }
@@ -313,7 +313,7 @@ const updateUserRole = async (userId, idSuperAdmin, role) => {
             JSON.stringify({
                 date: new Date(),
                 author: idSuperAdmin,
-                message: `Role diubah oleh super admin`,
+                message: `Role diubah oleh super admin menjadi '${role}'`,
             }),
         ]
 
@@ -321,7 +321,7 @@ const updateUserRole = async (userId, idSuperAdmin, role) => {
             JSON.stringify({
                 date: new Date(),
                 author: idSuperAdmin,
-                message: `Mengubah role user dengan id: ${userId}`,
+                message: `Mengubah role user dengan id: ${userId} menjadi '${role}'`,
             }),
         ]
 

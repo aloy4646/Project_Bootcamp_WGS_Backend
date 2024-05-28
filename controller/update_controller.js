@@ -62,14 +62,24 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             }),
         ]
 
-        //update user
+        //update update_request. Jika idAdmin dan updateAt tidak null maka update sudah di-accept
         var result = await db.query(
-            `UPDATE users SET ${stringQuery}, updatedat = NOW(), logs = logs || $1, histories = histories || $2 WHERE id = $3`,
-            [newUserLog, newUserHistory, update_request.idUser]
+            `UPDATE update_request SET idAdmin = $1, updatedat = NOW() WHERE id = $2`,
+                [idAdmin, update_request.id]
+            
         )
 
-        //update admin
+        //update user
         if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                `UPDATE users SET ${stringQuery}, updatedat = NOW(), logs = logs || $1, histories = histories || $2 WHERE id = $3`,
+                [newUserLog, newUserHistory, update_request.idUser]
+            )
+        }
+
+        //update admin
+        if (result) {
             result = null
             result = await db.query(
                 `UPDATE users SET logs = logs || $1 WHERE id = $2`,
@@ -77,16 +87,7 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             )
         }
 
-        //update update_request. Jika idAdmin dan updateAt tidak null maka update sudah di-accept
-        if (result.rowCount > 0) {
-            result = null
-            result = await db.query(
-                `UPDATE update_request SET idAdmin = $1, updatedat = NOW() WHERE id = $2`,
-                [idAdmin, update_request.id]
-            )
-        }
-
-        if (result.rowCount > 0) {
+        if (result) {
             return result
         }
 
