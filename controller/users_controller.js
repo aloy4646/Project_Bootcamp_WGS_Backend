@@ -73,20 +73,26 @@ const updateUserPassword = async (userId, password, message) => {
                 message: `Mengubah password`,
             }),
         ]
-        const newHistory = [
-            JSON.stringify({
-                date: new Date(),
-                author: userId,
-                old: { password: 'secret' },
-                new: { password: 'secret' },
-                message: message,
-            }),
-        ]
 
         var result = await db.query(
-            'UPDATE users SET password = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
-            [password, newLog, newHistory, userId]
+            'UPDATE users SET password = $1, updatedat = NOW(), logs = logs || $2 WHERE id = $3',
+            [password, newLog, userId]
         )
+
+        //update history
+        if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                `INSERT INTO histories (
+                    "idUser", old, new, date, author, message
+                )
+                VALUES (
+                    $1, $2, $3, NOW(), $4, $5
+                )`,
+                [userId, { password: 'secret' }, { password: 'secret' }, userId, message]
+            )
+        }
+
         return result
     } catch (error) {
         console.error('Error saat mengubah password: ', error)
@@ -113,20 +119,24 @@ const updateUserPasswordByAdmin = async (userId, idAdmin, password, message) => 
             }),
         ]
 
-        const newHistory = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                old: { password: 'secret' },
-                new: { password: 'secret' },
-                message: message,
-            }),
-        ]
-
         var result = await db.query(
-            'UPDATE users SET password = $1, updatedat = NOW(), logs = logs || $2, histories = histories || $3 WHERE id = $4',
-            [password, newLog, newHistory, userId]
+            'UPDATE users SET password = $1, updatedat = NOW(), logs = logs || $2 WHERE id = $3',
+            [password, newLog, userId]
         )
+
+        //update history
+        if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                `INSERT INTO histories (
+                    "idUser", old, new, date, author, message
+                )
+                VALUES (
+                    $1, $2, $3, NOW(), $4, $5
+                )`,
+                [userId, { password: 'secret' }, { password: 'secret' }, idAdmin, message]
+            )
+        }
 
         //update admin
         if (result.rowCount > 0) {
@@ -280,7 +290,7 @@ const getUserLogs = async (userId) => {
         if (result.rows.length > 0) {
             return result.rows[0].logs
         } else {
-            return null
+            return []
         }
     } catch (error) {
         console.error('Error saat mengabil logs user: ', error)
@@ -291,14 +301,32 @@ const getUserLogs = async (userId) => {
 const getUserHistories = async (userId) => {
     try {
         const result = await db.query(
-            'SELECT histories FROM users WHERE id = $1',
+            'SELECT * FROM histories WHERE "idUser" = $1',
             [userId]
         )
 
         if (result.rows.length > 0) {
-            return result.rows[0].histories
+            return result.rows
         } else {
-            return null
+            return []
+        }
+    } catch (error) {
+        console.error('Error saat mengambil histories user: ', error)
+        throw error
+    }
+}
+
+const getUserHistoryDetail = async (userId, historyId) => {
+    try {
+        const result = await db.query(
+            'SELECT * FROM histories WHERE "idUser" = $1 AND id = $2',
+            [userId, historyId]
+        )
+
+        if (result.rows.length > 0) {
+            return result.rows[0]
+        } else {
+            return []
         }
     } catch (error) {
         console.error('Error saat mengambil histories user: ', error)
@@ -380,6 +408,7 @@ module.exports = {
     getUserData,
     getUserLogs,
     getUserHistories,
+    getUserHistoryDetail,
     updateUserRole,
     getUserRole,
 }

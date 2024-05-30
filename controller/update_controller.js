@@ -52,16 +52,6 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
             }),
         ]
 
-        const newUserHistory = [
-            JSON.stringify({
-                date: new Date(),
-                author: idAdmin,
-                old: update_request.old,
-                new: update_request.new,
-                message: update_request.message,
-            }),
-        ]
-
         //update update_request. Jika idAdmin dan updateAt tidak null maka update sudah di-accept
         var result = await db.query(
             `UPDATE update_request SET idAdmin = $1, updatedat = NOW() WHERE id = $2`,
@@ -73,8 +63,22 @@ const acceptUpdateRequest = async (update_request, idAdmin, stringQuery) => {
         if (result.rowCount > 0) {
             result = null
             result = await db.query(
-                `UPDATE users SET ${stringQuery}, updatedat = NOW(), logs = logs || $1, histories = histories || $2 WHERE id = $3`,
-                [newUserLog, newUserHistory, update_request.idUser]
+                `UPDATE users SET ${stringQuery}, updatedat = NOW(), logs = logs || $1 WHERE id = $2`,
+                [newUserLog, update_request.idUser]
+            )
+        }
+
+        //update history
+        if (result.rowCount > 0) {
+            result = null
+            result = await db.query(
+                `INSERT INTO histories (
+                    "idUser", old, new, date, author, message
+                )
+                VALUES (
+                    $1, $2, $3, NOW(), $4, $5
+                )`,
+                [update_request.idUser, update_request.old, update_request.new, idAdmin, update_request.message]
             )
         }
 

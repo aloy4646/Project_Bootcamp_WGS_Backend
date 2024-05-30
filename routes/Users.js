@@ -400,4 +400,26 @@ router.get('/histories/:userId', verifyUser, adminOrAuditorOnly, async (req, res
     }
 })
 
+//Get user history detail
+router.get('/histories/:userId/:historyId', verifyUser, adminOrAuditorOnly, async (req, res) => {
+    try {
+        const {userId, historyId} = req.params
+        const history = await users_controller.getUserHistoryDetail(userId, historyId)
+
+        // Kirim file sebagai respons JSON
+        res.status(200).json({
+            status: 200,
+            history,
+        })
+    } catch (error) {
+        await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil histories user: ' + error.message)
+        res.status(500)
+        res.json({
+            status: 500,
+            message: 'Internal Server Error',
+            error: error,
+        })
+    }
+})
+
 module.exports = router
