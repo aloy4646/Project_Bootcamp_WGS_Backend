@@ -1,0 +1,1 @@
+Folder ini berisi file-file berekstensi .png, .jpg dan .jpeg untuk menyimpan 'foto' dari user

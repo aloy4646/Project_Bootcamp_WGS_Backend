@@ -1,0 +1,1 @@
+Folder ini berisi file-file berekstensi .pdf untuk menyimpan dokumen-dokumen dari user

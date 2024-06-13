@@ -1,0 +1,1 @@
+Folder ini berisi file-file berekstensi .png, .jpg, .jpeg dan .pdf untuk menyimpan 'media' dari sertifikat
