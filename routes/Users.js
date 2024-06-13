@@ -8,7 +8,7 @@ const fs = require('fs')
 const path = require('path')
 const { verifyUser, superAdminOrAdminOnly, adminOrAuditorOnly } = require('../middleware/AuthUser')
 
-//create user
+//Create User
 router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
     try {
         const { email_kantor } = req.body
@@ -18,7 +18,7 @@ router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
 
         if(user){
             return res.status(400).json({
-                status: 400,
+                status: 'failed',
                 error: 'Email sudah ada, silahkan gunakan email lain',
             })
         }
@@ -32,7 +32,7 @@ router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
             )
 
             res.json({
-                status: 200,
+                status: 'success',
                 message: 'Proses penambahan user berhasil',
                 data: { email_kantor, password },
             })
@@ -42,7 +42,7 @@ router.post('/', verifyUser, superAdminOrAdminOnly, async (req, res) => {
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -56,15 +56,15 @@ router.get('/', verifyUser, async (req, res) => {
 
         if(req.role === 'USER') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
-        res.json({ status: 200, listUser })
+        res.json({ status: 'success', data: {listUser} })
     } catch (error) {
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -79,17 +79,17 @@ router.get('/:userId', verifyUser, async (req, res) => {
 
         if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
-        res.json({ status: 200, user })
+        res.json({ status: 'success', data: {user} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil seluruh detail user')
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -104,7 +104,7 @@ router.get('/data/:userId', verifyUser, async (req, res) => {
 
         if(userId != req.userId && req.role !== 'ADMIN') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -149,13 +149,13 @@ router.get('/data/:userId', verifyUser, async (req, res) => {
             return acc;
         }, {})
 
-        res.json({ status: 200, user })
+        res.json({ status: 'success', data: {user} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil user data (text dan image): ' + error.message)
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -169,7 +169,7 @@ router.get('/dokumen/:userId', verifyUser, async (req, res) => {
 
         if(userId != req.userId && req.role !== 'ADMIN') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -204,13 +204,13 @@ router.get('/dokumen/:userId', verifyUser, async (req, res) => {
             return acc;
         }, {})
 
-        res.json({ status: 200, user })
+        res.json({ status: 'success', data: {user} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil user data (dokumen pdf): ' + error.message)
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -223,7 +223,7 @@ router.put('/password/:userId', verifyUser, async (req, res) => {
         const userId = req.params.userId
         if(userId != req.userId){
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
         const { old_password, new_password } = req.body
@@ -235,7 +235,7 @@ router.put('/password/:userId', verifyUser, async (req, res) => {
         const match = await bcrypt.compare(old_password, user.password)
         if (!match) {
             return res.status(400).json({
-                status: 400,
+                status: 'failed',
                 error: 'Password lama salah',
             })
         }
@@ -247,13 +247,13 @@ router.put('/password/:userId', verifyUser, async (req, res) => {
             throw new Error('Error saat megnubah password')
         }
 
-        return res.json({ status: 200, message: 'Password berhasil diubah' })
+        return res.json({ status: 'success', message: 'Password berhasil diubah' })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengubah password: ' + error.message)
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -268,7 +268,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
 
         if(userId != req.userId && req.role !== 'ADMIN') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -330,7 +330,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
             throw new Error('Error saat request update data user')
         }
 
-        res.json({ status: 200, message: 'Request update berhasil tersimpan, silahkan tunggu konfirmasi dari admin' })
+        res.json({ status: 'success', message: 'Request update berhasil tersimpan, silahkan tunggu konfirmasi dari admin' })
     } catch (error) {
         if (req.file && req.file.path) {
             const fotoPath = req.file.path
@@ -349,7 +349,7 @@ router.put('/:userId', verifyUser, imageUploads.single('foto'), async (req, res)
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -364,14 +364,14 @@ router.get('/logs/:userId', verifyUser, adminOrAuditorOnly, async (req, res) => 
 
         // Kirim file sebagai respons JSON
         res.status(200).json({
-            status: 200,
-            logs,
+            status: 'success',
+            data: {logs},
         })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil logs user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -386,14 +386,14 @@ router.get('/histories/:userId', verifyUser, adminOrAuditorOnly, async (req, res
 
         // Kirim file sebagai respons JSON
         res.status(200).json({
-            status: 200,
-            histories,
+            status: 'success',
+            data: {histories},
         })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil histories user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -408,14 +408,14 @@ router.get('/histories/:userId/:historyId', verifyUser, adminOrAuditorOnly, asyn
 
         // Kirim file sebagai respons JSON
         res.status(200).json({
-            status: 200,
-            history,
+            status: 'success',
+            data: {history},
         })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil histories user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })

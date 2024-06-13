@@ -12,14 +12,14 @@ router.post('/login', async (req, res) => {
 
         if (!user) {
             res.status(400)
-            res.json({ status: 400, error: 'Email kantor atau password salah' })
+            res.json({ status: 'failed', error: 'Email kantor atau password salah' })
             return
         }
 
         const match = await bcrypt.compare(password, user.password)
         if (!match) {
             return res.status(400).json({
-                status: 400,
+                status: 'failed',
                 error: 'Email kantor atau password salah',
             })
         }
@@ -29,11 +29,11 @@ router.post('/login', async (req, res) => {
         const id = user.id
         const role = user.role
 
-        res.json({ status: 200, message: 'Login berhasil', data: {id, email_kantor, role}})
+        res.json({ status: 'success', message: 'Login berhasil', data: {id, email_kantor, role}})
     } catch (error) {
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -47,13 +47,13 @@ router.delete('/logout', async (req, res) => {
             if(error){
                 throw error
             }else{
-                res.json({ status: 200, message: 'Logout berhasil'})
+                res.json({ status: 'success', message: 'Logout berhasil'})
             }
         })
     } catch (error) {
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -65,7 +65,7 @@ router.get('/check', async (req, res) => {
     try {
         if(!req.session.userId){
             return res.status(401).json({
-                status: 401,
+                status: 'failed',
                 error: 'Session tidak ada, mohon login ke akun anda',
             })
         }
@@ -82,12 +82,12 @@ router.get('/check', async (req, res) => {
         const email_kantor = user.email_kantor
         const role = user.role
 
-        res.json({ status: 200, message: 'User berhasil ditemukan', data: {id, email_kantor, role}})
+        res.json({ status: 'success', message: 'User berhasil ditemukan', data: {id, email_kantor, role}})
 
     } catch (error) {
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })

@@ -8,7 +8,7 @@ const { error_log_controller } = require('../controller/index')
 router.get('/', verifyUser, async (req, res) => {
     try {
         if (req.role === 'SUPER ADMIN') {
-            res.status(403).json({ status: 403, error: 'User tidak memiliki akses' })
+            res.status(403).json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -30,7 +30,7 @@ router.get('/', verifyUser, async (req, res) => {
 
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })

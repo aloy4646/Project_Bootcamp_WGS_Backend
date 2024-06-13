@@ -16,12 +16,12 @@ router.put('/role/:userId', verifyUser, superAdminOnly, async (req, res) => {
             throw new Error('Error saat merubah role user')
         }
 
-        return res.json({ status: 200, message: 'Role berhasil diubah', data: {userId, role} })
+        return res.json({ status: 'success', message: 'Role berhasil diubah', data: {userId, role} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.userId, 'Error saat merubah role user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -39,12 +39,12 @@ router.get('/role/:userId', verifyUser, superAdminOnly, async (req, res) => {
             throw new Error('Error saat mengambil role user')
         }
 
-        return res.json({ status: 200, message: 'Role berhasil diambil', data: {role: result} })
+        return res.json({ status: 'success', message: 'Role berhasil diambil', data: {role: result} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.userId, 'Error saat mengambil role user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })

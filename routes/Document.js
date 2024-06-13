@@ -6,7 +6,7 @@ const { pdfUploads, sertifikatUploads } = require('../storage/storage')
 const {users_controller, sertifikat_controller, error_log_controller } = require('../controller/index')
 const { verifyUser } = require('../middleware/AuthUser')
 
-// Request Update User Data (dokumen)
+// Request Update Dokumen
 router.put(
     '/:userId',
     verifyUser,
@@ -25,7 +25,7 @@ router.put(
 
             if(userId != req.userId && req.role !== 'ADMIN') {
                 res.status(403)
-                res.json({ status: 403, error: 'User tidak memiliki akses' })
+                res.json({ status: 'failed', error: 'User tidak memiliki akses' })
                 return
             }
 
@@ -71,7 +71,7 @@ router.put(
                 throw new Error('Error saat request update dokumen user')
             }
 
-            res.json({ status: 200, message: 'Request update berhasil tersimpan, silahkan tunggu konfirmasi dari admin' })
+            res.json({ status: 'success', message: 'Request update berhasil tersimpan, silahkan tunggu konfirmasi dari admin' })
         } catch (error) {
             //menghapus file jika terjadi kesalahan
             if (req.files) {
@@ -92,7 +92,7 @@ router.put(
 
             res.status(500)
             res.json({
-                status: 500,
+                status: 'failed',
                 message: 'Internal Server Error',
                 error: error,
             })
@@ -107,7 +107,7 @@ router.get('/sertifikat/:userId', verifyUser, async (req, res) => {
 
         if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -119,19 +119,19 @@ router.get('/sertifikat/:userId', verifyUser, async (req, res) => {
             throw new Error('Error saat mengambil list sertifikat user')
         }
 
-        res.json({ status: 200, listSertifikat })
+        res.json({ status: 'success', data: {listSertifikat} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil list sertifikat user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
     }
 })
 
-//get user sertifikat detail
+//get detail sertifikat user
 router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => {
     try {
         const userId = req.params.userId
@@ -139,7 +139,7 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
 
         if(userId != req.userId && req.role !== 'ADMIN' && req.role !== 'AUDITOR') {
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -152,12 +152,12 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
             throw new Error('Error saat mengambil detail sertifikat user')
         }
 
-        res.json({ status: 200, sertifikat })
+        res.json({ status: 'success', data: {sertifikat} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.params.userId, 'Error saat mengambil detail sertifikat user: ' + error.message)
         res.status(500)
         res.json({
-            status: 500,
+            status: 'failed',
             message: 'Internal Server Error',
             error: error,
         })
@@ -166,16 +166,16 @@ router.get('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => 
 
 // Add sertifikat
 router.post(
-    '/sertifikat',
+    '/sertifikat/:userId',
     verifyUser,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
-            const userId = req.body.userId
+            const userId = req.params.userId
 
             if(userId != req.userId){
                 res.status(403)
-                res.json({ status: 403, error: 'User tidak memiliki akses' })
+                res.json({ status: 'failed', error: 'User tidak memiliki akses' })
                 return
             }
 
@@ -222,12 +222,12 @@ router.post(
                 throw new Error('Error saat menambah sertifikat')
             }
 
-            res.json({ status: 200, message: 'Sertifikat berhasil ditambahkan' })
+            res.json({ status: 'success', message: 'Sertifikat berhasil ditambahkan', data : {sertifikat:result.rows[0]} })
         } catch (error) {
             await error_log_controller.addErrorLog(req.body.userId, 'Error saat menambah sertifikat: ' + error.message)
             res.status(500)
             res.json({
-                status: 500,
+                status: 'failed',
                 message: 'Internal Server Error',
                 error: error,
             })
@@ -237,17 +237,17 @@ router.post(
 
 //Update sertifikat
 router.put(
-    '/sertifikat/:sertifikatId',
+    '/sertifikat/:userId/:sertifikatId',
     verifyUser,
     sertifikatUploads.single('media'),
     async (req, res) => {
         try {
             const sertifikatId = req.params.sertifikatId
-            const userId = req.body.userId
+            const userId = req.params.userId
 
             if(userId != req.userId){
                 res.status(403)
-                res.json({ status: 403, error: 'User tidak memiliki akses' })
+                res.json({ status: 'failed', error: 'User tidak memiliki akses' })
                 return
             }
 
@@ -296,7 +296,7 @@ router.put(
                 throw new Error('Error saat mengubah sertifikat user')
             }
 
-            res.json({ status: 200, message: 'Sertifikat berhasil diubah' })
+            res.json({ status: 'success', message: 'Sertifikat berhasil diubah', data : {sertifikat:result.rows[0]} })
         } catch (error) {
             if (req.file && req.file.path) {
                 const fotoPath = req.file.path
@@ -315,7 +315,7 @@ router.put(
 
             res.status(500)
             res.json({
-                status: 500,
+                status: 'failed',
                 message: 'Internal Server Error',
                 error: error,
             })
@@ -324,10 +324,16 @@ router.put(
 )
 
 //Delete sertifikat
-router.delete('/sertifikat/:sertifikatId', verifyUser, async (req, res) => {
+router.delete('/sertifikat/:userId/:sertifikatId', verifyUser, async (req, res) => {
     try {
         const sertifikatId = req.params.sertifikatId
-        const userId = req.userId
+        const userId = req.params.userId
+
+        if(userId != req.userId){
+            res.status(403)
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
+            return
+        }
 
         const sertifikat = await sertifikat_controller.getSertifikatBySertifikatId(
             sertifikatId
@@ -339,7 +345,7 @@ router.delete('/sertifikat/:sertifikatId', verifyUser, async (req, res) => {
 
         if(sertifikat.idUser != req.userId){
             res.status(403)
-            res.json({ status: 403, error: 'User tidak memiliki akses' })
+            res.json({ status: 'failed', error: 'User tidak memiliki akses' })
             return
         }
 
@@ -360,12 +366,12 @@ router.delete('/sertifikat/:sertifikatId', verifyUser, async (req, res) => {
             })
         }
 
-        res.json({ status: 200, message: 'Sertifikat berhasil dihapus' })
+        res.json({ status: 'success', message: 'Sertifikat berhasil dihapus', data : {sertifikat:result.rows[0]} })
     } catch (error) {
         await error_log_controller.addErrorLog(req.body.userId, 'Error saat menghapus sertifikat: ' + error.message)
         res.status(500)
             res.json({
-                status: 500,
+                status: 'failed',
                 message: 'Internal Server Error',
                 error: error,
             })

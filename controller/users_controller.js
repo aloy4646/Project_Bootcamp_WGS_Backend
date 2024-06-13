@@ -288,7 +288,10 @@ const getUserLogs = async (userId) => {
             userId,
         ])
         if (result.rows.length > 0) {
-            return result.rows[0].logs
+            //merubah order dari logs agar log terbaru menjadi log urutan pertama
+            let reversedLogs = result.rows[0].logs.reverse()
+    
+            return reversedLogs
         } else {
             return []
         }
@@ -301,7 +304,7 @@ const getUserLogs = async (userId) => {
 const getUserHistories = async (userId) => {
     try {
         const result = await db.query(
-            'SELECT * FROM histories WHERE "idUser" = $1',
+            'SELECT * FROM histories WHERE "idUser" = $1 ORDER BY id DESC',
             [userId]
         )
 

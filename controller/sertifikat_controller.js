@@ -32,7 +32,7 @@ const addSertifikat = async (userId, sertifikat) => {
         if (result.rowCount > 0) {
             result = null
             result = await db.query(
-                `INSERT INTO sertifikat ("idUser", ${kolomNameString}, createdat) VALUES ($1, ${placeholderValues}, NOW())`,
+                `INSERT INTO sertifikat ("idUser", ${kolomNameString}, createdat) VALUES ($1, ${placeholderValues}, NOW()) RETURNING *`,
                 [userId, ...sertifikatValues]
             )
         }
@@ -101,15 +101,15 @@ const deleteSertifikat = async (userId, sertifikatId) => {
         ]
 
         var result = await db.query(
-            'DELETE FROM sertifikat WHERE id = $1 AND "idUser" = $2',
-            [sertifikatId, userId]
+            'UPDATE users SET logs = logs || $1 WHERE id = $2',
+            [newLog, userId]
         )
 
         if (result.rowCount > 0) {
             result = null
             result = await db.query(
-                'UPDATE users SET logs = logs || $1 WHERE id = $2',
-                [newLog, userId]
+                'DELETE FROM sertifikat WHERE id = $1 AND "idUser" = $2 RETURNING *',
+                [sertifikatId, userId]
             )
         }
 
@@ -130,17 +130,18 @@ const updateSertifikat = async (userId, sertifikatId, stringQuery) => {
             }),
         ]
 
-        //update sertifikat
+        //update log user
         var result = await db.query(
-            `UPDATE sertifikat SET ${stringQuery}, updatedat = NOW() WHERE id = $1 AND "idUser" = $2`,
-            [sertifikatId, userId]
+            'UPDATE users SET logs = logs || $1 WHERE id = $2',
+                [newLog, userId]
         )
 
         if (result.rowCount > 0) {
             result = null
+            //update sertifikat
             result = await db.query(
-                'UPDATE users SET logs = logs || $1 WHERE id = $2',
-                [newLog, userId]
+                `UPDATE sertifikat SET ${stringQuery}, updatedat = NOW() WHERE id = $1 AND "idUser" = $2 RETURNING *`,
+                [sertifikatId, userId]
             )
         }
 
